@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "915343601231",
+    "project_id": "workgest-54daa",
+    "storage_bucket": "workgest-54daa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:915343601231:android:565ecb83c0fa15f6b4043a",
+        "android_client_info": {
+          "package_name": "com.example.workgest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMnsxfkBd7u8Wo9pZmF8-SOO9oZ8oRKpY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
