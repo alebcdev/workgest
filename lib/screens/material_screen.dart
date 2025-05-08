@@ -1,21 +1,20 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:workgest/model/firebase_data.dart';
-
-import '../../viewmodel/user_viewmodel.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Keep for StreamBuilder type
+import '../managers/material_manager.dart';
+import '../managers/user_manager.dart';
 
 class MaterialScreen extends StatefulWidget {
-  late final User user;
+  final User user;
 
-  MaterialScreen(this.user);
+  const MaterialScreen(this.user, {super.key});
 
   @override
   _MaterialScreenState createState() => _MaterialScreenState();
 }
 
 class _MaterialScreenState extends State<MaterialScreen> {
-  Stream<QuerySnapshot> _materialStream = FirebaseData.getStreamMaterial();
+  final Stream<QuerySnapshot> _materialStream = MaterialManager.getMaterialStream();
 
   late String userRol = '';
 
@@ -26,7 +25,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
   }
 
   void getActualUserRole() async {
-    String? role = await UserViewModel.getUserRole(widget.user);
+    String? role = await UserManager.getUserRole(widget.user);
     if (role != null) {
       setState(() {
         userRol = role;
@@ -138,7 +137,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
   void actualizarDisponibilidad(String id, int cantidadInicial, int change) {
     int newAvailability = cantidadInicial + change;
     if (newAvailability >= 0) {
-      FirebaseFirestore.instance.collection('material').doc(id).update({'disponibilidad': newAvailability});
+      MaterialManager.updateMaterialAvailability(id, newAvailability);
     }
   }
 }

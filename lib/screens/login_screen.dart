@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../../model/firebase_auth.dart';
-import 'home_screen.dart';
+import '../managers/user_manager.dart'; // Import UserManager
+import 'user_admin_screen.dart'; // Import UserAdminScreen
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+ // Renamed to match file (Optional, but good practice)
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -104,10 +106,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       _errorMessage = null;
                     });
 
-                    User? user = await FireAuth.signInUsingEmailAndPass(
+                    User? user = await UserManager.signIn( // Use UserManager for sign in
                       email: _emailFieldController.text,
                       password: _passwordFieldController.text,
-                    );
+                    ); // Cast as User?
 
                     setState(() {
                       _processing = false;
@@ -121,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       );
                     } else {
                       setState(() {
-                        _errorMessage = 'Usuario o contraseña incorrectos';
+                        _errorMessage = UserManager.statusMessage; // Use UserManager's status message
                       });
                     }
                   },

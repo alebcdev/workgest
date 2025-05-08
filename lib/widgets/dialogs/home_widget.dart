@@ -1,13 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:workgest/viewmodel/app_navegation.dart';
+import '../../providers/app_navegation_provider.dart';
 
 class Home extends StatefulWidget {
   final User user;
 
-  Home({required this.user});
+  const Home({super.key, required this.user});
   @override
   _HomeState createState() => _HomeState();
 }
