@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../managers/user_manager.dart';
+
 enum RadioOpciones { Administrador, Estandard }
 
 class UserRegistrationScreen extends StatefulWidget {
@@ -14,7 +16,6 @@ class UserRegistrationScreen extends StatefulWidget {
 class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
   final _nameFieldController = TextEditingController();
   final _apellidoFieldController = TextEditingController();
-  final _emailFieldController = TextEditingController();
   final _passwordFieldController = TextEditingController();
 
   late RadioOpciones _opcionRol = RadioOpciones.Estandard;
@@ -22,7 +23,6 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
   final _focusName = FocusNode();
   final _focusApellido = FocusNode();
   final _focusEmail = FocusNode();
-  final _focusPassword = FocusNode();
 
   bool _processing = false;
   String _statusMessage = "";
@@ -31,10 +31,8 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
   void dispose() {
     _nameFieldController.dispose();
     _apellidoFieldController.dispose();
-    _emailFieldController.dispose();
     _passwordFieldController.dispose();
     _focusName.dispose();
-    _focusApellido.dispose();
     _focusEmail.dispose();
     _focusPassword.dispose();
     super.dispose();
@@ -49,8 +47,6 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
     return GestureDetector(
       onTap: () {
         _focusName.unfocus();
-        _focusApellido.unfocus();
-        _focusEmail.unfocus();
         _focusPassword.unfocus();
       },
       child: Scaffold(
@@ -67,13 +63,7 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                 controller: _nameFieldController,
                 focusNode: _focusName,
                 decoration: const InputDecoration(labelText: "Nombre"),
-              ),
-              SizedBox(height: paddingVertical),
-              TextField(
-                controller: _apellidoFieldController,
-                focusNode: _focusApellido,
-                decoration: const InputDecoration(labelText: "Apellido"),
-              ),
+              ), // No need for separate apellido field if only name is required for registration
               SizedBox(height: paddingVertical),
               TextField(
                 controller: _emailFieldController,
@@ -137,20 +127,12 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
     });
 
     final String nombre = _nameFieldController.text.trim();
-    final String apellido = _apellidoFieldController.text.trim();
     final String email = _emailFieldController.text.trim();
     final String password = _passwordFieldController.text.trim();
-    final String rol = _opcionRol == RadioOpciones.Administrador ? "Administrador" : "Estandard";
-
-    if (nombre.isEmpty || apellido.isEmpty || email.isEmpty || password.isEmpty) {
-      setState(() {
-        _statusMessage = "Todos los campos son obligatorios.";
-        _processing = false;
-      });
-      return;
-    }
+    final String type = _opcionRol == RadioOpciones.Administrador ? "Administrador" : "Estandard";
 
     try {
+      // TODO: Use UserManager to create user instead of direct Firebase calls
       // Crear usuario en Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
@@ -162,8 +144,7 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
       // Guardar en Firestore
       await FirebaseFirestore.instance.collection('usuarios').doc(uid).set({
         'nombre': nombre,
-        'apellido': apellido,
-        'correo': email,
+        'email': email,
         'rol': rol,
         'uid': uid,
       });

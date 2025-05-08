@@ -1,14 +1,7 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:csv/csv.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:workgest/managers/schedule_manager.dart';
 
 class HorarioScreen extends StatefulWidget {
@@ -21,12 +14,10 @@ class HorarioScreen extends StatefulWidget {
 }
 
 class _HorarioScreenState extends State<HorarioScreen> {
-  List<List<dynamic>> _data = [];
-  String? filepath;
+  List<dynamic> _data = [];
   late String userRol = '';
+  final TextEditingController _groupController = TextEditingController();
   bool _isLoading = true;
-
-  final ScheduleManager _scheduleManager = ScheduleManager();
 
   @override
   void initState() {
@@ -36,11 +27,14 @@ class _HorarioScreenState extends State<HorarioScreen> {
       DeviceOrientation.landscapeLeft,
     ]);
 
-    _loadScheduleData();
-    _scheduleManager.getUserRole(widget.user).then((role) {
+    _loadSchedules();
+    ScheduleManager().getUserRole(widget.user).then((role) {
       if (mounted) {
         setState(() {
           userRol = role ?? '';
+          if (userRol == 'Administrador') {
+            _loadCSVFilePath();
+          }
         });
       }
     });
@@ -52,11 +46,8 @@ class _HorarioScreenState extends State<HorarioScreen> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+    _groupController.dispose();
     super.dispose();
-  }
-
-  void _loadScheduleData() {
-    _loadFilepath();
   }
 
   @override
@@ -66,16 +57,15 @@ class _HorarioScreenState extends State<HorarioScreen> {
     double headerFontSize = MediaQuery.of(context).size.width * 0.03;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Horario',
-          style: TextStyle(color: Colors.white, fontSize: headerFontSize),
+        appBar: AppBar(
+          title: Text(
+            'Horario',
+            style: TextStyle(color: Colors.white, fontSize: headerFontSize),
+          ),
+          iconTheme: const IconThemeData(color: Colors.white),
+          backgroundColor: Colors.blue,
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.blue,
-      ),
-      body: Column(
-        children: [
+        body: Column(children: [
           userRol == 'Administrador'
               ? Padding(
                   padding: EdgeInsets.all(screenHeight * 0.01),
@@ -100,74 +90,51 @@ class _HorarioScreenState extends State<HorarioScreen> {
               : Expanded(
                   child: ListView.builder(
                     itemCount: _data.length,
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
                     itemBuilder: (_, index) {
-                      Color backgroundColor;
-                      if (index == 0) {
-                        backgroundColor = Colors.greenAccent;
-                      } else {
-                        backgroundColor = _scheduleManager.colorPalette[
-                            ((index - 1) ~/ 2) %
-                                _scheduleManager.colorPalette.length];
-                      }
                       return Card(
-                        margin: EdgeInsets.all(screenHeight * 0.01),
-                        color: backgroundColor,
-                        child: ListTile(
-                          title: Row(
-                            children: _data[index].map<Widget>((item) {
-                              return Expanded(
-                                child: Text(
-                                  item.toString(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize:
-                                        index == 0 ? headerFontSize : fontSize,
-                                    fontWeight: index == 0
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      );
+                          margin: EdgeInsets.all(screenHeight * 0.01),
+                          child: ListTile(
+                            title: Text(
+                              'Activity: ${_data[index]['activityName']}, Monitor: ${_data[index]['monitorName']}',
+                              style: TextStyle(fontSize: fontSize),
+                            ),
+                            subtitle: Text(
+                              'Start: ${_data[index]['startTime']}, End: ${_data[index]['endTime']}',
+                              style: TextStyle(fontSize: fontSize * 0.8),
+                            ),
+                          ));
                     },
                   ),
                 ),
-        ],
-      ),
-    );
+        ]));
+  }
+
+  void _loadSchedules() async {
+    setState(() {
+      _isLoading = true;
+    });
+    List<dynamic> schedules = await ScheduleManager().getAllSchedules();
+    setState(() {
+      _data = schedules;
+      _isLoading = false;
+    });
   }
 
   void _pickFile() async {
-    final result = await FilePicker.platform.pickFiles(allowMultiple: false);
-    if (result == null) return;
+    // This functionality will be implemented later
+    print("Pick file for schedule");
+  }
 
-    final filePath = result.files.first.path;
-    if (filePath == null) return;
+  Future<void> _loadCSVFilePath() async {
+    // This functionality will be implemented later
+    print("Load CSV file path");
+  }
 
-    File file = File(filePath);
-    FirebaseStorage storage = FirebaseStorage.instance;
-    String fileName = result.files.first.name;
-    TaskSnapshot uploadTask =
-        await storage.ref('uploads/$fileName').putFile(file);
-
-    String downloadURL = await uploadTask.ref.getDownloadURL();
-
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    await firestore
-        .collection('settings')
-        .doc('csv_filepath')
-        .set({'url': downloadURL});
-
+  Future<void> _loadCSV(String url) async {
+    // This functionality will be implemented later
     setState(() {
-      filepath = filePath;
+      _isLoading = false;
     });
-
-    _loadCSV(downloadURL);
   }
 
   Future<void> _loadFilepath() async {
@@ -180,16 +147,5 @@ class _HorarioScreenState extends State<HorarioScreen> {
         _loadCSV(downloadURL);
       }
     }
-  }
-
-  Future<void> _loadCSV(String url) async {
-    final response = await http.get(Uri.parse(url));
-    final fields =
-        const CsvToListConverter().convert(utf8.decode(response.bodyBytes));
-
-    setState(() {
-      _data = fields;
-      _isLoading = false;
-    });
   }
 }

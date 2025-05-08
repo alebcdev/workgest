@@ -3,14 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:workgest/managers/user_manager.dart';
 
 class DeleteUser extends StatefulWidget {
-  final QueryDocumentSnapshot snapshot;
+  final String userId;
 
-  const DeleteUser({super.key, required this.snapshot});
+  const DeleteUser({super.key, required this.userId});
 
   @override
   _DeleteUserState createState() => _DeleteUserState();
 }
-
 class _DeleteUserState extends State<DeleteUser> {
   @override
   Widget build(BuildContext context) {
@@ -26,7 +25,7 @@ class _DeleteUserState extends State<DeleteUser> {
       actions: [
         TextButton(
           onPressed: () async {
-            UserManager.deleteUser(widget.snapshot, context);
+            await UserManager.deleteUser(widget.userId);
           },
           child: Text(
             'Borrar',

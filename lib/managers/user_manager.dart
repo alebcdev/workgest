@@ -1,9 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:workgest/model/user_item.dart';
 import 'package:workgest/services/firebase_service.dart';
 import 'package:flutter/material.dart';
 
 class UserManager {
+  final FirebaseService _firebaseService = FirebaseService();
   static String statusMessage = "";
 
   static bool validateFields(String name, String apellido, String email, String? password) {
@@ -66,7 +67,7 @@ class UserManager {
 
       if (user != null) {
         await FirebaseService.addUserData({
-          'nombre': name,
+          'name': name,
           'apellido': apellido,
           'correo': email,
           'rol': rol,
@@ -80,32 +81,26 @@ class UserManager {
     }
   }
 
-  static Future<void> updateUserData({
-    required String docId,
-    required String nombre,
-    required String apellido,
-    required String correo,
-    required String rol,
-    required String oldMonitorName,
-    required String newMonitorName,
-    required DocumentReference snapshotReference,
-    String? newPassword,
-    User? firebaseUser,
-  }) async {
+  Future<void> updateUser(
+      UserItem user, {
+        required String oldMonitorName,
+        required String newMonitorName,
+        User? firebaseUser,
+      }) async {
     try {
-      await FirebaseService.updateUserData(snapshotReference, {
-        'nombre': nombre,
-        'apellido': apellido,
-        'correo': correo,
-        'rol': rol,
+      await _firebaseService.updateUserData(user.id, {
+        'name': user.name,
+        'email': user.email,
+        'type': user.type,
       });
 
-      if (firebaseUser != null && firebaseUser.email != correo) {
-        await firebaseUser.verifyBeforeUpdateEmail(correo);
-      }
-
-      if (firebaseUser != null && newPassword != null && newPassword.isNotEmpty) {
-        await firebaseUser.updatePassword(newPassword);
+      if (firebaseUser != null && firebaseUser.email != user.email) {
+        try {
+          await firebaseUser.verifyBeforeUpdateEmail(user.email);
+        } catch (e) {
+          statusMessage = "Error updating email: $e";
+          rethrow;
+        }
       }
 
       if (oldMonitorName != newMonitorName) {
@@ -115,42 +110,59 @@ class UserManager {
         }
       }
     } catch (e) {
-      statusMessage = "Error al actualizar usuario: $e";
+      statusMessage = "Error updating user: $e";
       rethrow;
     }
   }
 
-  static Future<void> deleteUser(DocumentSnapshot snapshot, BuildContext context) async {
+  Future<void> deleteUser(UserItem user, BuildContext context) async {
     try {
       final adminsSnapshot = await FirebaseService.getAdminUsers();
 
-      if (adminsSnapshot.docs.length == 1 && adminsSnapshot.docs.first.id == snapshot.id) {
+      if (adminsSnapshot.docs.length == 1 && adminsSnapshot.docs.first.id == user.id) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("No se puede borrar. Eres el último administrador.")),
         );
         return;
       }
 
-      final String? rol = snapshot['rol'];
+      final String? rol = user.type;
 
       if (rol == 'Estandard') {
+        final snapshot = await _firebaseService.getUserById(user.id);
         await _deleteStudentsByMonitor('${snapshot['nombre']} ${snapshot['apellido']}');
       }
 
-      await FirebaseService.deleteUserData(snapshot.reference);
+      await _firebaseService.deleteUserData(user.id);
       Navigator.of(context).pop();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Error eliminando el usuario")),
       );
-      statusMessage = "Error deleting user: $e";
+      _logError(e, StackTrace.current);
     }
   }
 
   static Future<void> _deleteStudentsByMonitor(String monitorName) async {
     final studentsSnapshot = await FirebaseService.getStudentsByMonitor(monitorName);
     for (final studentSnapshot in studentsSnapshot.docs) {
-      await FirebaseService.deleteSummerCamperData(studentSnapshot.reference);
+      await UserManager()._firebaseService.deleteSummerCamperData(studentSnapshot.reference);
+    }
+  }
+
+  Future<List<UserItem>> getAllUsers() async {
+    final snapshot = await _firebaseService.getAllUsers();
+    return snapshot.docs.map((doc) => UserItem.fromSnapshot(doc)).toList();
+  }
+
+  Future<UserItem?> getUserById(String id) async {
+    final snapshot = await _firebaseService.getUserById(id);
+    if (snapshot.exists) {
+      return UserItem.fromSnapshot(snapshot);
+    } else {
+      statusMessage = "User not found";
+      _logError("User with ID $id not found", StackTrace.current);
+      return null;
     }
   }
 
@@ -160,6 +172,17 @@ class UserManager {
 
   static Future<void> signOut() async {
     await FirebaseAuth.instance.signOut();
+  }
+
+  Future<UserItem?> findUserByEmail(String email) async {
+    final snapshot = await _firebaseService.findUserByEmail(email);
+    if (snapshot.docs.isNotEmpty) {
+      return UserItem.fromSnapshot(snapshot.docs.first);
+    } else {
+      statusMessage = "User with email $email not found";
+      _logError("User with email $email not found", StackTrace.current);
+      return null;
+    }
   }
 
   static void _logError(dynamic e, [StackTrace? stackTrace]) {

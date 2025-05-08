@@ -1,40 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:workgest/managers/user_manager.dart';
 import 'package:workgest/model/user_item.dart';
 
 class UpdateMyUserDialog extends StatefulWidget {
   final UserItem userItem;
-  final User user;
-  final DocumentSnapshot snapshot;
-  final int classID;
 
-  const UpdateMyUserDialog(
-      this.userItem, this.user, {
-        required this.snapshot,
-        required this.classID,
-        super.key,
-      });
+  const UpdateMyUserDialog(this.userItem, {super.key});
 
   @override
   _UpdateMyUserDialogState createState() => _UpdateMyUserDialogState();
 }
 
 class _UpdateMyUserDialogState extends State<UpdateMyUserDialog> {
-  late TextEditingController _nombreController;
-  late TextEditingController _apellidoController;
+  late TextEditingController _nameController;
+  late TextEditingController _emailController;
+  late TextEditingController _typeController;
+
+  final UserManager _userManager = UserManager();
 
   @override
   void initState() {
     super.initState();
-    _nombreController = TextEditingController(text: widget.userItem.nombre);
-    _apellidoController = TextEditingController(text: widget.userItem.apellido);
+    _nameController = TextEditingController(text: widget.userItem.name);
+    _emailController = TextEditingController(text: widget.userItem.email);
+    _typeController = TextEditingController(text: widget.userItem.type);
   }
 
   @override
   void dispose() {
-    _nombreController.dispose();
-    _apellidoController.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _typeController.dispose();
     super.dispose();
   }
 
@@ -42,10 +38,12 @@ class _UpdateMyUserDialogState extends State<UpdateMyUserDialog> {
     try {
       await widget.snapshot.reference.update({
         'nombre': _nombreController.text.trim(),
-        'apellido': _apellidoController.text.trim(),
+        'email': _emailController.text.trim(),
+        'type': _typeController.text.trim(),
       });
       Navigator.of(context).pop();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al actualizar: $e')),
       );
@@ -59,13 +57,21 @@ class _UpdateMyUserDialogState extends State<UpdateMyUserDialog> {
       content: SingleChildScrollView(
         child: Column(
           children: [
+            // Placeholder for name TextField
             TextField(
-              controller: _nombreController,
-              decoration: const InputDecoration(labelText: 'Nombre'),
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Name'),
             ),
+            // Placeholder for email TextField
             TextField(
-              controller: _apellidoController,
-              decoration: const InputDecoration(labelText: 'Apellido'),
+              controller: _emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            // Placeholder for type TextField
+            TextField(
+              controller: _typeController,
+              decoration: const InputDecoration(labelText: 'Type'),
             ),
           ],
         ),
@@ -75,7 +81,7 @@ class _UpdateMyUserDialogState extends State<UpdateMyUserDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancelar'),
         ),
-        ElevatedButton(
+        TextButton(
           onPressed: _updateUser,
           child: const Text('Guardar'),
         ),

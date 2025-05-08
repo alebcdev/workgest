@@ -1,98 +1,58 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:csv/csv.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:workgest/services/firebase_service.dart';
+import 'package:workgest/model/schedule_item.dart';
 
+/// Manager class for handling schedule related operations.
+/// This class interacts with the FirebaseService to perform CRUD operations on schedules.
 class ScheduleManager {
 
   ScheduleManager();
-
-  Future<String?> getUserRole(dynamic user) async {
-    final uid = user.uid;
-    final doc = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
-    return doc.data()?['rol'];
-  }
-
-  Future<String?> pickAndUploadCsvFile() async {
+  /// Retrieves all schedules from Firebase.
+  Future<List<Map<String, dynamic>>> getAllSchedules() async {
     try {
-      final result = await FilePicker.platform.pickFiles(allowMultiple: false);
-
-      if (result == null) return null;
-
-      final filePath = result.files.first.path;
-      if (filePath == null) return null;
-
-      File file = File(filePath);
-      String fileName = result.files.first.name;
-
-      final downloadURL = await FirebaseService.uploadFileToStorage(await file.readAsBytes(), 'uploads/$fileName');
-
-      return downloadURL;
-    } catch (e) {
-      _logError(e, StackTrace.current);
-      return null;
-    }
-  }
-
-  Future<void> saveCsvFileUrl(String url) async {
-    try {
-      await FirebaseService.saveCsvFileUrl(url);
+      return await FirebaseService.getAllSchedules();
     } catch (e) {
       _logError(e, StackTrace.current);
       rethrow;
     }
   }
 
-  Future<String?> getCsvFileUrl() async {
+  /// Retrieves a specific schedule by its ID from Firebase.
+  Future<ScheduleItem?> getScheduleById(String id) async {
     try {
-      final doc = await FirebaseService.getCsvFileUrl();
-      if (doc.exists) {
-        return doc['url'];
-      }
-      return null;
+      return await FirebaseService.getScheduleById(id);
     } catch (e) {
       _logError(e, StackTrace.current);
-      return null;
+      rethrow;
     }
   }
 
-  Future<List<List<dynamic>>> downloadAndParseCsv(String url) async {
+  /// Creates a new schedule in Firebase.
+  Future<void> createSchedule(ScheduleItem schedule) async {
     try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final fields = const CsvToListConverter().convert(utf8.decode(response.bodyBytes));
-        return fields;
-      } else {
-        _logError('Error downloading CSV: ${response.statusCode}', StackTrace.current);
-        return [];
-      }
+      await FirebaseService.createSchedule(schedule);
     } catch (e) {
       _logError(e, StackTrace.current);
-      return [];
+      rethrow;
     }
   }
 
-  void _logError(dynamic e, StackTrace stackTrace) {
-    if (kDebugMode) {
-      print('Error: $e\nStackTrace: $stackTrace');
+  /// Updates an existing schedule in Firebase.
+  Future<void> updateSchedule(ScheduleItem schedule) async {
+    try {
+      await FirebaseService.updateSchedule(schedule);
+    } catch (e) {
+      _logError(e, StackTrace.current);
+      rethrow;
     }
   }
 
-  final List<Color> colorPalette = [
-    Colors.orange,
-    Colors.purple,
-    Colors.blue,
-    Colors.green,
-    Colors.red,
-    Colors.yellow,
-    Colors.teal,
-    Colors.indigo,
-    Colors.pink,
-    Colors.brown,
-  ];
+  /// Deletes a schedule by its ID from Firebase.
+  Future<void> deleteSchedule(String id) async {
+    try {
+      await FirebaseService.deleteSchedule(id);
+    } catch (e) {
+      _logError(e, StackTrace.current);
+      rethrow;
+    }
+  }
 }

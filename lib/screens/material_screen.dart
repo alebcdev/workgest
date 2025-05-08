@@ -37,7 +37,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
-    double paddingSize = screenWidth * 0.02; // 2% of screen width
+    double paddingSize = screenWidth * 0.02; // 2% of screen width.
     double fontSizeLarge = screenHeight * 0.025; // 2.5% of screen height
     double fontSizeMedium = screenHeight * 0.02; // 2% of screen height
     double iconSize = screenHeight * 0.04; // 4% of screen height
@@ -56,11 +56,11 @@ class _MaterialScreenState extends State<MaterialScreen> {
         stream: _materialStream,
         builder: (context, material) {
           if (material.hasError) {
-            return const Text('Error de conexión');
+            return const Center(child: Text('Error de conexión'));
           }
 
           if (material.hasData) {
-            Map<String, int> activities = {};
+            Map<String, int> materials = {};
             for (var doc in material.data!.docs) {
               int disponibilidad = doc['disponibilidad'];
               activities[doc.id] = disponibilidad;
@@ -71,7 +71,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                 String docId = entry.key;
                 int available = entry.value;
                 String name = material.data!.docs.firstWhere((doc) => doc.id == docId)['nombre'];
-                String imagePath = 'assets/images/${name.toLowerCase().replaceAll(' ', '')}.png';
+                String imagePath = 'assets/images/${name.toLowerCase().replaceAll(' ', '_')}.png';
 
                 return Padding(
                   padding: EdgeInsets.all(paddingSize),

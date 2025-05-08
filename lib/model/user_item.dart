@@ -1,11 +1,25 @@
 
 class UserItem{
 
-  late  String nombre;
-  late  String apellido;
-  late  String correo;
-  late  String rol;
+  String id;
+  String name;
+  String email;
+  String type;
 
-  UserItem(this.nombre, this.apellido, this.correo, this.rol);
+  UserItem({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.type,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'type': type,
+    };
+  }
 
 }

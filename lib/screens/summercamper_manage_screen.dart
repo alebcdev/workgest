@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:workgest/model/summercamper_item.dart';
 import 'package:workgest/managers/user_manager.dart';
 import 'package:workgest/managers/summer_camper_manager.dart';
-import 'package:workgest/screens/summercamper_registration_screen.dart';
 
 class SummerCamperManage extends StatefulWidget {
   final User user;
@@ -22,7 +21,7 @@ class _SummerCamperManageState extends State<SummerCamperManage> {
   @override
   void initState() {
     super.initState();
-    _summerCampersStream = SummerCamperManager.getSummerCampersStream() as Stream<List<SummerCamper>>;
+    _summerCampersStream = SummerCamperManager.getSummerCampersStream();
     _loadUserRole();
   }
 
@@ -124,23 +123,25 @@ class _SummerCamperManageState extends State<SummerCamperManage> {
                           style: TextStyle(fontSize: fontSizeLarge)),
                       subtitle: Text(camper.monitor,
                           style: TextStyle(fontSize: fontSizeSmall)),
-                      trailing: userRol == 'Administrador'
-                          ? IconButton(
-                        icon: Icon(Icons.edit, size: iconSize),
-                        onPressed: () {
-                          // Aquí deberías crear la pantalla UpdateSummerCamperScreen
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  SummerCamperRegistrationScreen(
-                                      camperToEdit: camper),
-                            ),
-                          );
-                        },
-                      )
-                          : Column(
+                      trailing: userRol == 'Administrador' ? Row(
                         mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit, size: iconSize),
+                            onPressed: () {
+                              _showManageSummerCamperDialog(context, camper: camper);
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, size: iconSize),
+                            onPressed: () {
+                              _showDeleteSummerCamperDialog(context, camper);
+                            },
+                          ),
+                        ],
+                      ) : Column(
+                        mainAxisSize: MainAxisSize.min,
+
                         children: [
                           Text('Edad:',
                               style: TextStyle(fontSize: fontSizeSmall)),
@@ -166,9 +167,7 @@ class _SummerCamperManageState extends State<SummerCamperManage> {
               FloatingActionButton(
                 shape: const CircleBorder(),
                 onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const SummerCamperRegistrationScreen(),
-                  ));
+                  _showManageSummerCamperDialog(context);
                 },
                 child: Icon(Icons.add, size: iconSize),
               ),
@@ -189,5 +188,136 @@ class _SummerCamperManageState extends State<SummerCamperManage> {
 
   Color _colorTile(int index) {
     return index % 2 == 0 ? Colors.black12 : Colors.white;
+  }
+
+  void _showManageSummerCamperDialog(BuildContext context, {SummerCamper? camper}) {
+    final TextEditingController nameController = TextEditingController(text: camper?.nombre ?? '');
+    final TextEditingController lastNameController = TextEditingController(text: camper?.apellido ?? '');
+    final TextEditingController ageController = TextEditingController(text: camper?.edad.toString() ?? '');
+    final TextEditingController monitorController = TextEditingController(text: camper?.monitor ?? '');
+    final TextEditingController groupController = TextEditingController(text: camper?.group ?? '');
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(camper == null ? 'Registrar Alumno' : 'Editar Alumno'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(hintText: 'Nombre'),
+                ),
+                TextField(
+                  controller: lastNameController,
+                  decoration: const InputDecoration(hintText: 'Apellido'),
+                ),
+                TextField(
+                  controller: ageController,
+                  decoration: const InputDecoration(hintText: 'Edad'),
+                  keyboardType: TextInputType.number,
+                ),
+                TextField(
+                  controller: monitorController,
+                  decoration: const InputDecoration(hintText: 'Monitor'),
+                ),
+                TextField(
+                  controller: groupController,
+                  decoration: const InputDecoration(hintText: 'Grupo'),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text(camper == null ? 'Registrar' : 'Guardar'),
+              onPressed: () async {
+                final String name = nameController.text.trim();
+                final String lastName = lastNameController.text.trim();
+                final int age = int.tryParse(ageController.text.trim()) ?? 0;
+                final String monitor = monitorController.text.trim();
+                final String group = groupController.text.trim();
+
+                if (name.isEmpty || lastName.isEmpty || age <= 0 || monitor.isEmpty || group.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Por favor, completa todos los campos.')),
+                  );
+                  return;
+                }
+
+                if (camper == null) {
+                  // Create new summer camper
+                  final newSummerCamper = SummerCamper(
+                    id: '', // ID will be generated by Firestore
+                    nombre: name,
+                    apellido: lastName,
+                    edad: age,
+                    monitor: monitor,
+                    group: group,
+                  );
+                  await SummerCamperManager.createSummerCamper(newSummerCamper);
+                } else {
+                  // Update existing summer camper
+                  final updatedSummerCamper = SummerCamper(
+                    id: camper.id,
+                    nombre: name,
+                    apellido: lastName,
+                    edad: age,
+                    monitor: monitor,
+                    group: group,
+                  );
+                  await SummerCamperManager.updateSummerCamper(updatedSummerCamper);
+                }
+
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteSummerCamperDialog(BuildContext context, SummerCamper camper) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Eliminar Alumno'),
+          content: Text('¿Estás seguro de que quieres eliminar a ${camper.nombre} ${camper.apellido}?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Eliminar'),
+              onPressed: () async {
+                try {
+                  await SummerCamperManager.deleteSummerCamper(camper.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Alumno eliminado con éxito')),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al eliminar alumno: $e')),
+                  );
+                }
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

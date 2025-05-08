@@ -17,21 +17,14 @@ class _SummerCamperRegistrationScreenState
     extends State<SummerCamperRegistrationScreen> {
   final _nameFieldController = TextEditingController();
   final _apellidoFieldController = TextEditingController();
-  final _edadFieldController = TextEditingController();
+  final _ageFieldController = TextEditingController();
 
-  String? _selectedMonitor;
   bool _processing = false;
   String _statusMessage = "";
 
   @override
   void initState() {
     super.initState();
-    if (widget.camperToEdit != null) {
-      _nameFieldController.text = widget.camperToEdit!.nombre;
-      _apellidoFieldController.text = widget.camperToEdit!.apellido;
-      _edadFieldController.text = widget.camperToEdit!.edad.toString();
-      _selectedMonitor = widget.camperToEdit!.monitor;
-    }
   }
 
   @override
@@ -39,14 +32,12 @@ class _SummerCamperRegistrationScreenState
     _nameFieldController.dispose();
     _apellidoFieldController.dispose();
     _edadFieldController.dispose();
-    super.dispose();
+    super.dispose(); // Assuming _edadFieldController exists and needs disposing
   }
 
   Future<void> _saveCamper() async {
     final nombre = _nameFieldController.text.trim();
-    final apellido = _apellidoFieldController.text.trim();
-    final edadStr = _edadFieldController.text.trim();
-
+    final edadStr = _ageFieldController.text.trim();
     if (nombre.isEmpty ||
         apellido.isEmpty ||
         edadStr.isEmpty ||
@@ -61,26 +52,13 @@ class _SummerCamperRegistrationScreenState
       return;
     }
 
-    setState(() {
-      _processing = true;
-      _statusMessage = "";
-    });
+    setState(() => _processing = true);
 
     try {
-      if (widget.camperToEdit == null) {
-        // Nuevo camper
-        await SummerCamperManager.addSummerCamper(
-            nombre, apellido, edad, _selectedMonitor!);
-      } else {
-        // Actualización
-        await SummerCamperManager.updateSummerCamper(
-          widget.camperToEdit!.id,
-          nombre,
-          apellido,
-          edad,
-          _selectedMonitor!,
-        );
-      }
+      await SummerCamperManager.createSummerCamper(
+        nombre,
+        edad,
+      );
 
       setState(() => _statusMessage = "Guardado correctamente.");
       Navigator.pop(context);
@@ -95,8 +73,7 @@ class _SummerCamperRegistrationScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-            widget.camperToEdit == null ? "Registrar alumno" : "Editar alumno"),
+        title: const Text("Registrar alumno"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -107,35 +84,9 @@ class _SummerCamperRegistrationScreenState
               decoration: const InputDecoration(labelText: "Nombre"),
             ),
             TextField(
-              controller: _apellidoFieldController,
-              decoration: const InputDecoration(labelText: "Apellido"),
-            ),
-            TextField(
-              controller: _edadFieldController,
+              controller: _ageFieldController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: "Edad"),
-            ),
-            const SizedBox(height: 16),
-            StreamBuilder<List<String>>(
-              stream: SummerCamperManager.getMonitorsStream(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return const CircularProgressIndicator();
-                final monitors = snapshot.data!;
-                return DropdownButtonFormField<String>(
-                  value: _selectedMonitor,
-                  items: monitors.map((monitor) {
-                    return DropdownMenuItem(
-                      value: monitor,
-                      child: Text(monitor),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() => _selectedMonitor = value);
-                  },
-                  decoration:
-                      const InputDecoration(labelText: "Selecciona un monitor"),
-                );
-              },
             ),
             const SizedBox(height: 24),
             if (_statusMessage.isNotEmpty)

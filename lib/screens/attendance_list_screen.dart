@@ -17,7 +17,7 @@ class AttendanceListScreen extends StatefulWidget {
 class _AttendanceListScreenState extends State<AttendanceListScreen> {
   late Stream<QuerySnapshot> _usuariosStream;
   late Stream<QuerySnapshot> _estudiantesStream;
-  String? _selectedMonitor = 'Todos';
+  String? _selectedMonitor = 'All';
   DateTime _selectedDate = DateTime.now();
   Map<String, bool> attendanceStatus = {};
   String userRol = '';
@@ -43,7 +43,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
   }
 
   void _loadAttendanceStatus() async {
-    final date = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    final date = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day); // Set the time to the beginning of the day
     final snapshot = await FirebaseService.getAsistenciaByDate(date);
 
     final Map<String, bool> status = {};
@@ -77,15 +77,15 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
   }
 
   Widget _buildStudentTile(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>?; // Make data nullable
     final studentId = doc.id;
     final asistio = attendanceStatus[studentId] ?? false;
-    final monitor = data['monitor'];
+    final monitor = data?['monitor'];
 
     // Mostrar solo los estudiantes del monitor actual, si es monitor
     if (userRol == 'Estandard' && monitor != monitorActual) return SizedBox.shrink();
 
-    return ListTile(
+    return data == null ? SizedBox.shrink() : ListTile(
       title: Text('${data['nombre']} ${data['apellido']}'),
       subtitle: Text('Edad: ${data['edad']}'),
       trailing: Row(
@@ -109,7 +109,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
   Widget _buildDateSelector() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: <Widget>[
         const Text('Fecha:'),
         const SizedBox(width: 10),
         TextButton(

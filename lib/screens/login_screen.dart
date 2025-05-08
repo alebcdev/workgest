@@ -1,13 +1,12 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../managers/user_manager.dart'; // Import UserManager
-import 'user_admin_screen.dart'; // Import UserAdminScreen
+import 'package:provider/provider.dart';
+import '../providers/app_navegation_provider.dart';
+import '../services/firebase_service.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
- // Renamed to match file (Optional, but good practice)
-  @override
-  _LoginScreenState createState() => _LoginScreenState();
+class LoginScreen extends StatefulWidget {  const LoginScreen({super.key});
+// Renamed to match file (Optional, but good practice)
+@override
+_LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -106,27 +105,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       _errorMessage = null;
                     });
 
-                    User? user = await UserManager.signIn( // Use UserManager for sign in
-                      email: _emailFieldController.text,
-                      password: _passwordFieldController.text,
-                    ); // Cast as User?
+                    String? user = await FirebaseService().signIn(email: _emailFieldController.text, password: _passwordFieldController.text);
 
                     setState(() {
                       _processing = false;
                     });
 
-                    if (user != null) {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => UserAdminScreen(user: user),
-                        ),
-                      );
-                    } else {
-                      setState(() {
-                        _errorMessage = UserManager.statusMessage; // Use UserManager's status message
-                      });
-                    }
-                  },
+                    setState(() {
+                      _errorMessage = "Error al iniciar sesión: $user";
+                    });
+                                    },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     shape: RoundedRectangleBorder(
@@ -139,6 +127,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       fontSize: screenHeight * 0.025,
                       color: Colors.white,
                     ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(screenHeight * 0.01),
+              child: TextButton(
+                onPressed: () {
+                  Provider.of<AppNavegationProvider>(context, listen: false).changeRoute('/registerUser');
+                },
+                child: Text(
+                  '¿No tienes cuenta? Regístrate aquí',
+                  style: TextStyle(
+                    fontSize: screenHeight * 0.02,
                   ),
                 ),
               ),

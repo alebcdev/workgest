@@ -3,16 +3,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class SummerCamper {
   final String id;
   final String nombre;
-  final String apellido;
   final int edad;
-  final String monitor;
+  final String group;
 
   SummerCamper({
     required this.id,
     required this.nombre,
-    required this.apellido,
     required this.edad,
-    required this.monitor,
+    required this.group, // Este campo se añadió como requerido
   });
 
   factory SummerCamper.fromDocument(DocumentSnapshot doc) {
@@ -20,9 +18,16 @@ class SummerCamper {
     return SummerCamper(
       id: doc.id,
       nombre: data['nombre'] ?? '',
-      apellido: data['apellido'] ?? '',
       edad: data['edad'] ?? 0,
-      monitor: data['monitor'] ?? '',
+      group: data['group'] ?? '', // Asegura valor por defecto
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'nombre': nombre,
+      'edad': edad,
+      'group': group,
+    };
   }
 }

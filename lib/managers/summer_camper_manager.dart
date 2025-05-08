@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:workgest/services/firebase_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
 import '../model/summercamper_item.dart';
 
 class SummerCamperManager {
@@ -17,22 +16,56 @@ class SummerCamperManager {
     return true;
   }
 
-  static Future<void> addSummerCamper(String nombre, String apellido, int edad, String monitor) async {
-    await FirebaseFirestore.instance.collection('summercampers').add({
-      'nombre': nombre,
-      'apellido': apellido,
-      'edad': edad,
-      'monitor': monitor,
-    });
+  static Future<List<SummerCamper>> getAllSummerCampers() async {
+    try {
+      final snapshot = await FirebaseService.getAllSummerCampers();
+      return snapshot.docs.map((doc) => SummerCamper.fromDocument(doc)).toList();
+    } catch (e, stackTrace) {
+      _logError(e, stackTrace);
+      return [];
+    }
   }
 
-  static Future<void> updateSummerCamper(String id, String nombre, String apellido, int edad, String monitor) async {
-    await FirebaseFirestore.instance.collection('summercampers').doc(id).update({
-      'nombre': nombre,
-      'apellido': apellido,
-      'edad': edad,
-      'monitor': monitor,
-    });
+  static Future<SummerCamper?> getSummerCamperById(String id) async {
+    try {
+      final snapshot = await FirebaseService.getSummerCamperById(id);
+      if (snapshot.exists) {
+        return SummerCamper.fromDocument(snapshot);
+      }
+      return null;
+    } catch (e, stackTrace) {
+      _logError(e, stackTrace);
+      return null;
+    }
+  }
+
+  static Future<void> createSummerCamper(
+      String nombre, String apellido, int edad, String monitor) async {
+    try {
+      await FirebaseService.createSummerCamper({
+        'nombre': nombre,
+        'apellido': apellido,
+        'edad': edad,
+        'monitor': monitor,
+      });
+    } catch (e, stackTrace) {
+      _logError(e, stackTrace);
+    }
+  }
+
+  static Future<void> updateSummerCamper(
+      String id, String nombre, String apellido, int edad, String monitor) async {
+    try {
+      await FirebaseService.updateSummerCamper(id, {
+        'nombre': nombre,
+        'apellido': apellido,
+        'edad': edad,
+        'monitor': monitor,
+      });
+    } catch (e, stackTrace) {
+      _logError(e, stackTrace);
+      rethrow;
+    }
   }
 
   static void _logError(dynamic e, [StackTrace? stackTrace]) {
@@ -41,7 +74,8 @@ class SummerCamperManager {
     }
   }
 
-  static Future<void> deleteStudent(DocumentSnapshot snapshot, BuildContext context) async {
+  static Future<void> deleteSummerCamper(
+      DocumentSnapshot snapshot, BuildContext context) async {
     try {
       await FirebaseService.deleteSummerCamper(snapshot.reference);
       Navigator.of(context).pop();
@@ -65,25 +99,32 @@ class SummerCamperManager {
       ) async {
     try {
       final today = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
-      final snapshot = await FirebaseService.getAsistenciaByEstudianteAndDay(estudianteId, today);
+      final snapshot =
+      await FirebaseService.getAsistenciaByEstudianteAndDay(estudianteId, today);
 
       if (snapshot.docs.isNotEmpty) {
         final docId = snapshot.docs.first.id;
         await FirebaseService.updateAttendanceRecord(docId, asistio);
       } else {
-        await FirebaseService.addAttendanceRecord(estudianteId, nombre, apellido, Timestamp.fromDate(today), asistio);
+        await FirebaseService.addAttendanceRecord(
+          estudianteId,
+          nombre,
+          apellido,
+          Timestamp.fromDate(today),
+          asistio,
+        );
       }
       statusMessage = "Asistencia actualizada correctamente.";
-    } catch (e) {
+    } catch (e, stackTrace) {
       statusMessage = "Error al actualizar asistencia: $e";
-      _logError(e);
+      _logError(e, stackTrace);
     }
   }
 
   static Future<String?> getMonitor(User user) async {
     try {
       final role = await FirebaseService.getUserRoleByEmail(user.email ?? '');
-      if (role != null && role == 'Estandard') {
+      if (role == 'Estandard') {
         final userSnapshot = await FirebaseFirestore.instance
             .collection('usuarios')
             .where('correo', isEqualTo: user.email)
@@ -94,38 +135,35 @@ class SummerCamperManager {
           return '${data['nombre']} ${data['apellido']}';
         }
       }
-    } catch (e) {
-      _logError(e);
+    } catch (e, stackTrace) {
+      _logError(e, stackTrace);
     }
     return null;
   }
 
   static Stream<List<String>> getMonitorsStream() {
     return FirebaseService.getStreamUsuarios().map((snapshot) {
-      List<String> monitores = [];
-      for (var doc in snapshot.docs) {
-        if (doc['rol'] == 'Estandard') {
-          monitores.add('${doc['nombre']} ${doc['apellido']}');
-        }
-      }
-      return monitores;
+      return snapshot.docs
+          .where((doc) => doc['rol'] == 'Estandard')
+          .map((doc) => '${doc['nombre']} ${doc['apellido']}')
+          .toList();
     });
   }
 
   static Future<String?> getMonitorForSummerCamper(String summerCamperId) async {
     try {
       final snapshot = await FirebaseService.getSummerCamper(summerCamperId);
-      if (snapshot.exists) {
-        return snapshot.data()?['monitor'] as String?;
+      if (snapshot?.exists == true) {
+        return snapshot?.data()?['monitor'] as String?;
       }
-      return null;
-    } catch (e) {
-      _logError(e);
-      return null;
+    } catch (e, stackTrace) {
+      _logError(e, stackTrace);
     }
+    return null;
   }
 
-  static Future<bool> isDuplicateSummerCamper(String nombre, String apellido, int edad) async {
+  static Future<bool> isDuplicateSummerCamper(
+      String nombre, String apellido, int edad) async {
     try {
       final snapshot = await FirebaseFirestore.instance
           .collection('estudiantes')
@@ -135,20 +173,15 @@ class SummerCamperManager {
           .limit(1)
           .get();
       return snapshot.docs.isNotEmpty;
-    } catch (e) {
-      _logError(e);
+    } catch (e, stackTrace) {
+      _logError(e, stackTrace);
       return false;
     }
   }
 
   static Stream<List<SummerCamper>> getSummerCampersStream() {
-    return FirebaseFirestore.instance
-        .collection('estudiantes')
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => SummerCamper.fromDocument(doc))
-        .toList()
-    );
+    return FirebaseService.getSummerCampersStream().map((snapshot) =>
+        snapshot.docs.map((doc) => SummerCamper.fromDocument(doc)).toList());
   }
 
   static Stream<QuerySnapshot> getUsersStream() {

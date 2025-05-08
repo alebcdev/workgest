@@ -1,20 +1,11 @@
-import 'package:weather/weather.dart';
+import 'package:flutter/foundation.dart';
+import 'package:workgest/model/weather_item.dart';
 
-class WeatherViewModel {
-  final WeatherFactory _weatherFactory;
-  Future<List<Weather>>? weatherFuture;
-  String city = 'Santa Pola';
+class WeatherProvider with ChangeNotifier {
+  WeatherItem? currentWeather;
 
-  WeatherViewModel(this._weatherFactory) {
-    fetchWeather();
-  }
-
-  void fetchWeather() {
-    weatherFuture = _weatherFactory.fiveDayForecastByCityName(city);
-  }
-
-  void setCity(String newCity) {
-    city = newCity;
-    fetchWeather();
+  void updateWeather(WeatherItem weather) {
+    currentWeather = weather;
+    notifyListeners();
   }
 }

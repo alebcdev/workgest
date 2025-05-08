@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:collection/collection.dart'; // Necesario para firstWhereOrNull
 import 'package:workgest/model/user_item.dart';
 import 'package:workgest/services/firebase_service.dart';
-import 'package:workgest/widgets/dialogs/update_myuser_dialog.dart';
+import '../widgets/dialogs/update_myuser_dialog.dart';
 
 class MyProfileScreen extends StatelessWidget {
   final User user;
