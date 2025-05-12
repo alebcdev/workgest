@@ -1,12 +1,15 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_navegation_provider.dart';
 import '../services/firebase_service.dart';
 
-class LoginScreen extends StatefulWidget {  const LoginScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
 // Renamed to match file (Optional, but good practice)
-@override
-_LoginScreenState createState() => _LoginScreenState();
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -53,7 +56,9 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             SizedBox(height: screenHeight * 0.02),
             Padding(
-              padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01, horizontal: screenWidth * 0.03),
+              padding: EdgeInsets.symmetric(
+                  vertical: screenHeight * 0.01,
+                  horizontal: screenWidth * 0.03),
               child: TextField(
                 controller: _emailFieldController,
                 focusNode: _focusEmail,
@@ -66,7 +71,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01, horizontal: screenWidth * 0.03),
+              padding: EdgeInsets.symmetric(
+                  vertical: screenHeight * 0.01,
+                  horizontal: screenWidth * 0.03),
               child: TextField(
                 controller: _passwordFieldController,
                 focusNode: _focusPassword,
@@ -81,61 +88,67 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             _errorMessage != null
                 ? Padding(
-              padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01, horizontal: screenWidth * 0.03),
-              child: Text(
-                _errorMessage!,
-                style: const TextStyle(color: Colors.red),
-              ),
-            )
+                    padding: EdgeInsets.symmetric(
+                        vertical: screenHeight * 0.01,
+                        horizontal: screenWidth * 0.03),
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  )
                 : Container(),
             _processing
                 ? const CircularProgressIndicator()
                 : Padding(
-              padding: EdgeInsets.all(screenHeight * 0.01),
-              child: SizedBox(
-                width: buttonWidth,
-                height: buttonHeight,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    _focusPassword.unfocus();
-                    _focusEmail.unfocus();
+                    padding: EdgeInsets.all(screenHeight * 0.01),
+                    child: SizedBox(
+                      width: buttonWidth,
+                      height: buttonHeight,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          _focusPassword.unfocus();
+                          _focusEmail.unfocus();
 
-                    setState(() {
-                      _processing = true;
-                      _errorMessage = null;
-                    });
+                          setState(() {
+                            _processing = true;
+                            _errorMessage = null;
+                          });
 
-                    String? user = await FirebaseService().signIn(email: _emailFieldController.text, password: _passwordFieldController.text);
+                          User? user =
+                              await FirebaseService.signInUsingEmailAndPass(
+                                  email: _emailFieldController.text,
+                                  password: _passwordFieldController.text);
+                          setState(() {
+                            _processing = false;
+                          });
 
-                    setState(() {
-                      _processing = false;
-                    });
-
-                    setState(() {
-                      _errorMessage = "Error al iniciar sesión: $user";
-                    });
-                                    },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(screenHeight * 0.025),
+                          setState(() {
+                            _errorMessage = "Error al iniciar sesión: $user";
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(screenHeight * 0.025),
+                          ),
+                        ),
+                        child: Text(
+                          'Login',
+                          style: TextStyle(
+                            fontSize: screenHeight * 0.025,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  child: Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: screenHeight * 0.025,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ),
             Padding(
               padding: EdgeInsets.all(screenHeight * 0.01),
               child: TextButton(
                 onPressed: () {
-                  Provider.of<AppNavegationProvider>(context, listen: false).changeRoute('/registerUser');
+                  Provider.of<AppNavegationProvider>(context, listen: false)
+                      .changeRoute('/registerUser');
                 },
                 child: Text(
                   '¿No tienes cuenta? Regístrate aquí',

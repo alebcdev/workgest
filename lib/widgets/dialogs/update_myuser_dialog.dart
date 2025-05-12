@@ -1,11 +1,18 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:workgest/managers/user_manager.dart';
 import 'package:workgest/model/user_item.dart';
 
 class UpdateMyUserDialog extends StatefulWidget {
   final UserItem userItem;
+  final DocumentSnapshot snapshot; // o ponle DocumentSnapshot si lo prefieres
 
-  const UpdateMyUserDialog(this.userItem, {super.key});
+
+  const UpdateMyUserDialog({
+    required this.userItem,
+    required this.snapshot,
+    super.key,
+  });
 
   @override
   _UpdateMyUserDialogState createState() => _UpdateMyUserDialogState();
@@ -37,7 +44,7 @@ class _UpdateMyUserDialogState extends State<UpdateMyUserDialog> {
   Future<void> _updateUser() async {
     try {
       await widget.snapshot.reference.update({
-        'nombre': _nombreController.text.trim(),
+        'nombre': _nameController.text.trim(),
         'email': _emailController.text.trim(),
         'type': _typeController.text.trim(),
       });

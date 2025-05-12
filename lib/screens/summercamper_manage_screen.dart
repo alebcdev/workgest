@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:workgest/model/summercamper_item.dart';
 import 'package:workgest/managers/user_manager.dart';
 import 'package:workgest/managers/summer_camper_manager.dart';
+import 'package:workgest/screens/summercamper_registration_screen.dart';
 
 class SummerCamperManage extends StatefulWidget {
   final User user;
-
   const SummerCamperManage(this.user, {super.key});
 
   @override
@@ -14,142 +14,162 @@ class SummerCamperManage extends StatefulWidget {
 }
 
 class _SummerCamperManageState extends State<SummerCamperManage> {
-  late Stream<List<SummerCamper>> _summerCampersStream;
-  String? _selectedMonitor = 'Todos';
-  late String userRol = '';
+  final SummerCamperManager _manager = SummerCamperManager();
+  late Stream<List<SummerCamper>> _campersStream;
+  String _selectedMonitor = 'Todos';
+  String userRol = '';
 
   @override
   void initState() {
     super.initState();
-    _summerCampersStream = SummerCamperManager.getSummerCampersStream();
+    _campersStream = _manager.getSummerCampersStream();
     _loadUserRole();
   }
 
-  void _loadUserRole() async {
-    String? role = await UserManager.getUserRole(widget.user);
+  Future<void> _loadUserRole() async {
+    final role = await UserManager.getUserRole(widget.user);
     if (mounted) {
-      setState(() {
-        userRol = role ?? '';
-      });
+      setState(() => userRol = role ?? '');
     }
+  }
+
+  Color _colorTile(int index) => index.isEven ? Colors.black12 : Colors.white;
+
+  void _showManageDialog({SummerCamper? camper}) {
+    final nameCtrl    = TextEditingController(text: camper?.nombre ?? '');
+    final lastCtrl    = TextEditingController(text: camper?.apellido ?? '');
+    final ageCtrl     = TextEditingController(text: camper?.edad.toString() ?? '');
+    final monitorCtrl = TextEditingController(text: camper?.monitor ?? '');
+    final groupCtrl   = TextEditingController(text: camper?.group ?? '');
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(camper == null ? 'Registrar Alumno' : 'Editar Alumno'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: nameCtrl,    decoration: const InputDecoration(hintText: 'Nombre')),
+            TextField(controller: lastCtrl,    decoration: const InputDecoration(hintText: 'Apellido')),
+            TextField(controller: ageCtrl,     decoration: const InputDecoration(hintText: 'Edad'), keyboardType: TextInputType.number),
+            TextField(controller: monitorCtrl, decoration: const InputDecoration(hintText: 'Monitor')),
+            TextField(controller: groupCtrl,   decoration: const InputDecoration(hintText: 'Grupo')),
+          ],
+        ),
+        actions: [
+          TextButton(child: const Text('Cancelar'), onPressed: () => Navigator.pop(context)),
+          TextButton(
+            child: Text(camper == null ? 'Registrar' : 'Guardar'),
+            onPressed: () async {
+              final name    = nameCtrl.text.trim();
+              final last    = lastCtrl.text.trim();
+              final age     = int.tryParse(ageCtrl.text.trim()) ?? 0;
+              final monitor = monitorCtrl.text.trim();
+              final group   = groupCtrl.text.trim();
+
+              if ([name, last, monitor, group].any((s) => s.isEmpty) || age <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Completa todos los campos correctamente.')),
+                );
+                return;
+              }
+
+              if (camper == null) {
+                // create
+                await _manager.createSummerCamper(name, last, age, monitor);
+              } else {
+                // update
+                await _manager.updateSummerCamper(
+                  camper.id, name, last, age, monitor,
+                );
+              }
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteDialog(SummerCamper camper) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Eliminar Alumno'),
+        content: Text('¿Eliminar a ${camper.nombre} ${camper.apellido}?'),
+        actions: [
+          TextButton(child: const Text('Cancelar'), onPressed: () => Navigator.pop(context)),
+          TextButton(
+            child: const Text('Eliminar'),
+            onPressed: () async {
+              await _manager.deleteSummerCamper(camper.id, context);
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
-    double paddingSize = screenWidth * 0.03;
-    double fontSizeLarge = screenHeight * 0.025;
-    double fontSizeSmall = screenHeight * 0.02;
-    double iconSize = screenHeight * 0.04;
+    final sw = MediaQuery.of(context).size.width;
+    final sh = MediaQuery.of(context).size.height;
+    final pad = sw * 0.03;
+    final fLarge = sh * 0.025;
+    final fSmall = sh * 0.02;
+    final iconSz = sh * 0.04;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: Text(
-          'Gestión de alumnos',
-          style: TextStyle(color: Colors.white, fontSize: fontSizeLarge),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text('Gestión de alumnos', style: TextStyle(fontSize: fLarge)),
       ),
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(paddingSize),
-            child: Row(
-              children: [
-                Expanded(
-                  child: StreamBuilder<List<String>>(
-                    stream: SummerCamperManager.getMonitorsStream(),
-                    builder: (context, monitorsSnapshot) {
-                      if (monitorsSnapshot.hasError || !monitorsSnapshot.hasData) {
-                        return const SizedBox.shrink();
-                      }
-                      List<String> monitors = ['Todos', ...monitorsSnapshot.data!];
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Filtra por monitor:',
-                              style: TextStyle(fontSize: fontSizeSmall)),
-                          DropdownButton<String>(
-                            value: _selectedMonitor,
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                _selectedMonitor = newValue!;
-                              });
-                            },
-                            items: monitors.map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value, style: TextStyle(fontSize: fontSizeSmall)),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ],
+            padding: EdgeInsets.all(pad),
+            child: StreamBuilder<List<String>>(
+              stream: _manager.getMonitorsStream(),
+              builder: (ctx, snap) {
+                if (!snap.hasData) return const SizedBox.shrink();
+                final monitors = ['Todos', ...snap.data!];
+                return DropdownButton<String>(
+                  value: _selectedMonitor,
+                  onChanged: (v) => setState(() => _selectedMonitor = v!),
+                  items: monitors.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
+                );
+              },
             ),
           ),
           Expanded(
             child: StreamBuilder<List<SummerCamper>>(
-              stream: _summerCampersStream,
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return const Center(child: Text('Error de conexión'));
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final campers = _selectedMonitor != 'Todos'
-                    ? snapshot.data!.where((c) => c.monitor == _selectedMonitor).toList()
-                    : snapshot.data!;
-
-                if (campers.isEmpty) {
-                  return const Center(child: Text('No hay alumnos registrados.'));
-                }
-
+              stream: _campersStream,
+              builder: (ctx, snap) {
+                if (snap.hasError) return const Center(child: Text('Error'));
+                if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+                final campers = _selectedMonitor == 'Todos'
+                    ? snap.data!
+                    : snap.data!.where((c) => c.monitor == _selectedMonitor).toList();
+                if (campers.isEmpty) return const Center(child: Text('No hay alumnos.'));
                 return ListView.builder(
                   itemCount: campers.length,
-                  itemBuilder: (context, index) {
-                    final camper = campers[index];
-
+                  itemBuilder: (c, i) {
+                    final camper = campers[i];
                     return ListTile(
-                      leading: Icon(Icons.account_circle, size: iconSize),
-                      title: Text('${camper.nombre} ${camper.apellido}',
-                          style: TextStyle(fontSize: fontSizeLarge)),
-                      subtitle: Text(camper.monitor,
-                          style: TextStyle(fontSize: fontSizeSmall)),
-                      trailing: userRol == 'Administrador' ? Row(
+                      leading: Icon(Icons.account_circle, size: iconSz),
+                      title: Text('${camper.nombre} ${camper.apellido}', style: TextStyle(fontSize: fLarge)),
+                      subtitle: Text(camper.monitor, style: TextStyle(fontSize: fSmall)),
+                      tileColor: _colorTile(i),
+                      trailing: userRol == 'Administrador'
+                          ? Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          IconButton(
-                            icon: Icon(Icons.edit, size: iconSize),
-                            onPressed: () {
-                              _showManageSummerCamperDialog(context, camper: camper);
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.delete, size: iconSize),
-                            onPressed: () {
-                              _showDeleteSummerCamperDialog(context, camper);
-                            },
-                          ),
+                          IconButton(icon: Icon(Icons.edit, size: iconSz), onPressed: () => _showManageDialog(camper: camper)),
+                          IconButton(icon: Icon(Icons.delete, size: iconSz), onPressed: () => _showDeleteDialog(camper)),
                         ],
-                      ) : Column(
-                        mainAxisSize: MainAxisSize.min,
-
-                        children: [
-                          Text('Edad:',
-                              style: TextStyle(fontSize: fontSizeSmall)),
-                          Text('${camper.edad}',
-                              style: TextStyle(fontSize: fontSizeSmall)),
-                        ],
-                      ),
-                      tileColor: _colorTile(index),
+                      )
+                          : Text('Edad: ${camper.edad}', style: TextStyle(fontSize: fSmall)),
                     );
                   },
                 );
@@ -158,166 +178,12 @@ class _SummerCamperManageState extends State<SummerCamperManage> {
           ),
         ],
       ),
-      floatingActionButton: Padding(
-        padding: EdgeInsets.all(paddingSize),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (userRol == 'Administrador')
-              FloatingActionButton(
-                shape: const CircleBorder(),
-                onPressed: () {
-                  _showManageSummerCamperDialog(context);
-                },
-                child: Icon(Icons.add, size: iconSize),
-              ),
-            const SizedBox(height: 10),
-            if (userRol == 'Administrador' || userRol == 'Estandard')
-              FloatingActionButton(
-                shape: const CircleBorder(),
-                onPressed: () {
-                  // Aquí puedes navegar a la pantalla de asistencia
-                },
-                child: Icon(Icons.check, size: iconSize),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Color _colorTile(int index) {
-    return index % 2 == 0 ? Colors.black12 : Colors.white;
-  }
-
-  void _showManageSummerCamperDialog(BuildContext context, {SummerCamper? camper}) {
-    final TextEditingController nameController = TextEditingController(text: camper?.nombre ?? '');
-    final TextEditingController lastNameController = TextEditingController(text: camper?.apellido ?? '');
-    final TextEditingController ageController = TextEditingController(text: camper?.edad.toString() ?? '');
-    final TextEditingController monitorController = TextEditingController(text: camper?.monitor ?? '');
-    final TextEditingController groupController = TextEditingController(text: camper?.group ?? '');
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(camper == null ? 'Registrar Alumno' : 'Editar Alumno'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(hintText: 'Nombre'),
-                ),
-                TextField(
-                  controller: lastNameController,
-                  decoration: const InputDecoration(hintText: 'Apellido'),
-                ),
-                TextField(
-                  controller: ageController,
-                  decoration: const InputDecoration(hintText: 'Edad'),
-                  keyboardType: TextInputType.number,
-                ),
-                TextField(
-                  controller: monitorController,
-                  decoration: const InputDecoration(hintText: 'Monitor'),
-                ),
-                TextField(
-                  controller: groupController,
-                  decoration: const InputDecoration(hintText: 'Grupo'),
-                ),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text(camper == null ? 'Registrar' : 'Guardar'),
-              onPressed: () async {
-                final String name = nameController.text.trim();
-                final String lastName = lastNameController.text.trim();
-                final int age = int.tryParse(ageController.text.trim()) ?? 0;
-                final String monitor = monitorController.text.trim();
-                final String group = groupController.text.trim();
-
-                if (name.isEmpty || lastName.isEmpty || age <= 0 || monitor.isEmpty || group.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Por favor, completa todos los campos.')),
-                  );
-                  return;
-                }
-
-                if (camper == null) {
-                  // Create new summer camper
-                  final newSummerCamper = SummerCamper(
-                    id: '', // ID will be generated by Firestore
-                    nombre: name,
-                    apellido: lastName,
-                    edad: age,
-                    monitor: monitor,
-                    group: group,
-                  );
-                  await SummerCamperManager.createSummerCamper(newSummerCamper);
-                } else {
-                  // Update existing summer camper
-                  final updatedSummerCamper = SummerCamper(
-                    id: camper.id,
-                    nombre: name,
-                    apellido: lastName,
-                    edad: age,
-                    monitor: monitor,
-                    group: group,
-                  );
-                  await SummerCamperManager.updateSummerCamper(updatedSummerCamper);
-                }
-
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showDeleteSummerCamperDialog(BuildContext context, SummerCamper camper) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Eliminar Alumno'),
-          content: Text('¿Estás seguro de que quieres eliminar a ${camper.nombre} ${camper.apellido}?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Eliminar'),
-              onPressed: () async {
-                try {
-                  await SummerCamperManager.deleteSummerCamper(camper.id);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Alumno eliminado con éxito')),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error al eliminar alumno: $e')),
-                  );
-                }
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
+      floatingActionButton: userRol == 'Administrador'
+          ? FloatingActionButton(
+        onPressed: () => _showManageDialog(),
+        child: Icon(Icons.add, size: iconSz),
+      )
+          : null,
     );
   }
 }

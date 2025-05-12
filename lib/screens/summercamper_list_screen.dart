@@ -21,9 +21,10 @@ class _SummerCamperListScreenState extends State<SummerCamperListScreen> {
   }
 
   Future<void> _loadSummerCampers() async {
-    final summerCampers = await SummerCamperManager.getAllSummerCampers();
+    // Llamada a método de instancia, no estático
+    final campers = await _summerCamperManager.getAllSummerCampers();
     setState(() {
-      _summerCampers = summerCampers;
+      _summerCampers = campers;
     });
   }
 
@@ -36,10 +37,11 @@ class _SummerCamperListScreenState extends State<SummerCamperListScreen> {
       body: ListView.builder(
         itemCount: _summerCampers.length,
         itemBuilder: (context, index) {
-          final summerCamper = _summerCampers[index];
+          final camper = _summerCampers[index];
+          // Usar los campos correctos: nombre y edad
           return ListTile(
-            title: Text(summerCamper.name),
-            subtitle: Text('Age: ${summerCamper.age}'),
+            title: Text(camper.nombre),
+            subtitle: Text('Age: ${camper.edad}'),
           );
         },
       ),
@@ -47,8 +49,10 @@ class _SummerCamperListScreenState extends State<SummerCamperListScreen> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const SummerCamperRegistrationScreen()),
-          ).then((_) => _loadSummerCampers()); // Refresh the list after returning
+            MaterialPageRoute(
+              builder: (_) => const SummerCamperRegistrationScreen(),
+            ),
+          ).then((_) => _loadSummerCampers());
         },
         child: const Icon(Icons.add),
       ),

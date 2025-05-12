@@ -8,52 +8,46 @@ import 'package:workgest/managers/user_manager.dart';
 class AttendanceListScreen extends StatefulWidget {
   final User user;
 
-  AttendanceListScreen(this.user);
+  const AttendanceListScreen(this.user, {Key? key}) : super(key: key);
 
   @override
   _AttendanceListScreenState createState() => _AttendanceListScreenState();
 }
 
 class _AttendanceListScreenState extends State<AttendanceListScreen> {
-  late Stream<QuerySnapshot> _usuariosStream;
   late Stream<QuerySnapshot> _estudiantesStream;
-  String? _selectedMonitor = 'All';
-  DateTime _selectedDate = DateTime.now();
-  Map<String, bool> attendanceStatus = {};
   String userRol = '';
   String monitorActual = '';
+  DateTime _selectedDate = DateTime.now();
+  Map<String, bool> attendanceStatus = {};
+
+  final _camperManager = SummerCamperManager();
 
   @override
   void initState() {
     super.initState();
-    _usuariosStream = FirebaseService.getStreamUsuarios();
     _estudiantesStream = FirebaseService.getStreamAlumnos();
     _loadAttendanceStatus();
     _getUserRoleAndMonitor();
   }
 
-  void _getUserRoleAndMonitor() async {
+  Future<void> _getUserRoleAndMonitor() async {
     final role = await UserManager.getUserRole(widget.user);
-    final monitor = await SummerCamperManager.getMonitor(widget.user);
-
+    final monitor = await _camperManager.getMonitorForSummerCamper(widget.user.uid);
     setState(() {
       if (role != null) userRol = role;
       if (monitor != null) monitorActual = monitor;
     });
   }
 
-  void _loadAttendanceStatus() async {
-    final date = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day); // Set the time to the beginning of the day
+  Future<void> _loadAttendanceStatus() async {
+    final date = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
     final snapshot = await FirebaseService.getAsistenciaByDate(date);
-
-    final Map<String, bool> status = {};
+    final status = <String, bool>{};
     for (var doc in snapshot.docs) {
-      status[doc['estudianteId']] = doc['asistio'] ?? false;
+      status[doc['estudianteId']] = doc['asistio'] as bool? ?? false;
     }
-
-    setState(() {
-      attendanceStatus = status;
-    });
+    setState(() => attendanceStatus = status);
   }
 
   void _toggleAttendance(String studentId) {
@@ -64,7 +58,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
 
   Future<void> _saveAttendance(String studentId, String nombre, String apellido) async {
     final asistio = attendanceStatus[studentId] ?? false;
-    await SummerCamperManager.updateAttendance(
+    await _camperManager.updateAttendance(
       studentId,
       nombre,
       apellido,
@@ -77,15 +71,16 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
   }
 
   Widget _buildStudentTile(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>?; // Make data nullable
+    final data = doc.data() as Map<String, dynamic>;
     final studentId = doc.id;
     final asistio = attendanceStatus[studentId] ?? false;
-    final monitor = data?['monitor'];
+    final monitor = data['monitor'] as String? ?? '';
 
-    // Mostrar solo los estudiantes del monitor actual, si es monitor
-    if (userRol == 'Estandard' && monitor != monitorActual) return SizedBox.shrink();
+    if (userRol == 'Estandard' && monitor != monitorActual) {
+      return const SizedBox.shrink();
+    }
 
-    return data == null ? SizedBox.shrink() : ListTile(
+    return ListTile(
       title: Text('${data['nombre']} ${data['apellido']}'),
       subtitle: Text('Edad: ${data['edad']}'),
       trailing: Row(
@@ -93,13 +88,15 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
         children: [
           Checkbox(
             value: asistio,
-            onChanged: (value) {
-              _toggleAttendance(studentId);
-            },
+            onChanged: (_) => _toggleAttendance(studentId),
           ),
           IconButton(
             icon: const Icon(Icons.save),
-            onPressed: () => _saveAttendance(studentId, data['nombre'], data['apellido']),
+            onPressed: () => _saveAttendance(
+              studentId,
+              data['nombre'] as String,
+              data['apellido'] as String,
+            ),
           ),
         ],
       ),
@@ -121,13 +118,13 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               lastDate: DateTime(2100),
             );
             if (pickedDate != null) {
-              setState(() {
-                _selectedDate = pickedDate;
-              });
+              setState(() => _selectedDate = pickedDate);
               _loadAttendanceStatus();
             }
           },
-          child: Text('${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}'),
+          child: Text(
+            '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+          ),
         ),
       ],
     );
@@ -151,18 +148,11 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(child: Text('No hay estudiantes.'));
                 }
-
-                final students = snapshot.data!.docs;
-
-                return ListView.builder(
-                  itemCount: students.length,
-                  itemBuilder: (context, index) {
-                    return _buildStudentTile(students[index]);
-                  },
+                return ListView(
+                  children: snapshot.data!.docs.map(_buildStudentTile).toList(),
                 );
               },
             ),

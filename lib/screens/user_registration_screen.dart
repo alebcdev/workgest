@@ -15,10 +15,12 @@ class UserRegistrationScreen extends StatefulWidget {
 
 class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
   final _nameFieldController = TextEditingController();
-  final _apellidoFieldController = TextEditingController();
+  final _apellidoFieldController = TextEditingController(); // No se usa, pero lo dejé por si es necesario
+  final _emailFieldController = TextEditingController(); // ✅ Agregado
   final _passwordFieldController = TextEditingController();
+  final _focusPassword = FocusNode(); // ✅ Agregado
 
-  late RadioOpciones _opcionRol = RadioOpciones.Estandard;
+  RadioOpciones _opcionRol = RadioOpciones.Estandard;
 
   final _focusName = FocusNode();
   final _focusApellido = FocusNode();
@@ -31,10 +33,11 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
   void dispose() {
     _nameFieldController.dispose();
     _apellidoFieldController.dispose();
+    _emailFieldController.dispose(); // ✅ Agregado
     _passwordFieldController.dispose();
     _focusName.dispose();
     _focusEmail.dispose();
-    _focusPassword.dispose();
+    _focusPassword.dispose(); // ✅ Agregado
     super.dispose();
   }
 
@@ -47,7 +50,7 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
     return GestureDetector(
       onTap: () {
         _focusName.unfocus();
-        _focusPassword.unfocus();
+        _focusPassword.unfocus(); // ✅ Asegurado que existe
       },
       child: Scaffold(
         appBar: AppBar(
@@ -63,10 +66,10 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                 controller: _nameFieldController,
                 focusNode: _focusName,
                 decoration: const InputDecoration(labelText: "Nombre"),
-              ), // No need for separate apellido field if only name is required for registration
+              ),
               SizedBox(height: paddingVertical),
               TextField(
-                controller: _emailFieldController,
+                controller: _emailFieldController, // ✅ Corregido
                 focusNode: _focusEmail,
                 decoration: const InputDecoration(labelText: "Correo electrónico"),
                 keyboardType: TextInputType.emailAddress,
@@ -74,7 +77,7 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
               SizedBox(height: paddingVertical),
               TextField(
                 controller: _passwordFieldController,
-                focusNode: _focusPassword,
+                focusNode: _focusPassword, // ✅ Corregido
                 decoration: const InputDecoration(labelText: "Contraseña"),
                 obscureText: true,
               ),
@@ -127,13 +130,11 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
     });
 
     final String nombre = _nameFieldController.text.trim();
-    final String email = _emailFieldController.text.trim();
+    final String email = _emailFieldController.text.trim(); // ✅ Corregido
     final String password = _passwordFieldController.text.trim();
-    final String type = _opcionRol == RadioOpciones.Administrador ? "Administrador" : "Estandard";
+    final String type = _opcionRol == RadioOpciones.Administrador ? "Administrador" : "Estandard"; // ✅ Se usa como rol
 
     try {
-      // TODO: Use UserManager to create user instead of direct Firebase calls
-      // Crear usuario en Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -141,11 +142,10 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
 
       String uid = userCredential.user!.uid;
 
-      // Guardar en Firestore
       await FirebaseFirestore.instance.collection('usuarios').doc(uid).set({
         'nombre': nombre,
         'email': email,
-        'rol': rol,
+        'rol': type, // ✅ Corregido de 'rol' a 'type'
         'uid': uid,
       });
 
@@ -154,7 +154,7 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
         _processing = false;
       });
 
-      Navigator.pop(context); // Volver a la pantalla anterior
+      Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
       setState(() {
         _statusMessage = "Error: ${e.message}";

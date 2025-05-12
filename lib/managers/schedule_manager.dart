@@ -1,17 +1,28 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:workgest/services/firebase_service.dart';
 import 'package:workgest/model/schedule_item.dart';
 
 /// Manager class for handling schedule related operations.
 /// This class interacts with the FirebaseService to perform CRUD operations on schedules.
+/// Manager class for handling schedule related operations.
 class ScheduleManager {
+  final FirebaseService _service = FirebaseService();
 
-  ScheduleManager();
-  /// Retrieves all schedules from Firebase.
-  Future<List<Map<String, dynamic>>> getAllSchedules() async {
+  void _logError(dynamic e, StackTrace stack) {
+    print('ScheduleManager Error: $e\nStack: $stack');
+  }
+
+  /// Retrieves the role of a given Firebase user.
+  static Future<String?> getUserRole(User user) {
+    return FirebaseService.getUserRoleByEmail(user.email!);
+  }
+
+  Future<List<ScheduleItem>> getAllSchedules() async {
     try {
-      return await FirebaseService.getAllSchedules();
-    } catch (e) {
-      _logError(e, StackTrace.current);
+      final List<Map<String, dynamic>> rawList = await _service.getAllSchedules();
+      return rawList.map((json) => ScheduleItem.fromJson(json)).toList();
+    } catch (e, stack) {
+      _logError(e, stack);
       rethrow;
     }
   }
@@ -19,9 +30,14 @@ class ScheduleManager {
   /// Retrieves a specific schedule by its ID from Firebase.
   Future<ScheduleItem?> getScheduleById(String id) async {
     try {
-      return await FirebaseService.getScheduleById(id);
-    } catch (e) {
-      _logError(e, StackTrace.current);
+      // getSchedule(String) devuelve un Map<String, dynamic>?
+      final Map<String, dynamic>? json = await _service.getSchedule(id);
+      if (json != null) {
+        return ScheduleItem.fromJson(json);
+      }
+      return null;
+    } catch (e, stack) {
+      _logError(e, stack);
       rethrow;
     }
   }
@@ -29,9 +45,10 @@ class ScheduleManager {
   /// Creates a new schedule in Firebase.
   Future<void> createSchedule(ScheduleItem schedule) async {
     try {
-      await FirebaseService.createSchedule(schedule);
-    } catch (e) {
-      _logError(e, StackTrace.current);
+      // createSchedule(Map, String) espera dos parámetros
+      await _service.createSchedule(schedule.toJson(), schedule.group);
+    } catch (e, stack) {
+      _logError(e, stack);
       rethrow;
     }
   }
@@ -39,9 +56,14 @@ class ScheduleManager {
   /// Updates an existing schedule in Firebase.
   Future<void> updateSchedule(ScheduleItem schedule) async {
     try {
-      await FirebaseService.updateSchedule(schedule);
-    } catch (e) {
-      _logError(e, StackTrace.current);
+      // updateSchedule(String id, Map, String group)
+      await _service.updateSchedule(
+        schedule.id,
+        schedule.toJson(),
+        schedule.group,
+      );
+    } catch (e, stack) {
+      _logError(e, stack);
       rethrow;
     }
   }
@@ -49,9 +71,9 @@ class ScheduleManager {
   /// Deletes a schedule by its ID from Firebase.
   Future<void> deleteSchedule(String id) async {
     try {
-      await FirebaseService.deleteSchedule(id);
-    } catch (e) {
-      _logError(e, StackTrace.current);
+      await _service.deleteSchedule(id);
+    } catch (e, stack) {
+      _logError(e, stack);
       rethrow;
     }
   }

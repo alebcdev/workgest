@@ -41,7 +41,8 @@ class MyProfileScreen extends StatelessWidget {
 
           final docs = snapshot.data?.docs ?? [];
 
-          final userDoc = docs.firstWhereOrNull((doc) => doc['correo'] == user.email);
+          final userDoc =
+              docs.firstWhereOrNull((doc) => doc['correo'] == user.email);
 
           if (userDoc == null) {
             return const Center(child: Text('Usuario no encontrado.'));
@@ -104,10 +105,13 @@ class MyProfileScreen extends StatelessWidget {
                           context: context,
                           builder: (BuildContext context) {
                             return UpdateMyUserDialog(
-                              UserItem(nombre, apellido, correo, rol),
-                              user,
+                              userItem: UserItem(
+                                id: userDoc.id,
+                                name: '$nombre $apellido',
+                                email: correo,
+                                type: rol,
+                              ),
                               snapshot: userDoc,
-                              classID: 1,
                             );
                           },
                         );

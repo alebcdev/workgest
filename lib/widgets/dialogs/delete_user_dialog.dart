@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:workgest/managers/user_manager.dart';
 
+import '../../model/user_item.dart';
+
 class DeleteUser extends StatefulWidget {
   final String userId;
 
@@ -25,7 +27,7 @@ class _DeleteUserState extends State<DeleteUser> {
       actions: [
         TextButton(
           onPressed: () async {
-            await UserManager.deleteUser(widget.userId);
+            await UserManager().deleteUserById(widget.userId, context);
           },
           child: Text(
             'Borrar',

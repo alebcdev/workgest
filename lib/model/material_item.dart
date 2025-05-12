@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class MaterialItem {
   String id;
   String name;
@@ -11,18 +13,19 @@ class MaterialItem {
     required this.quantity,
   });
 
-  factory MaterialItem.fromJson(Map<String, dynamic> json) {
+  /// Crea un MaterialItem a partir de un DocumentSnapshot de Firestore
+  factory MaterialItem.fromDocument(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
     return MaterialItem(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'],
-      quantity: json['quantity'],
+      id: doc.id,
+      name: data['name'] ?? '',
+      description: data['description'] ?? '',
+      quantity: (data['quantity'] ?? 0) as int,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'name': name,
       'description': description,
       'quantity': quantity,

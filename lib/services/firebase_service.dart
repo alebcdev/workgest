@@ -295,4 +295,69 @@ class FirebaseService {
   static User? getCurrentUser() {
     return FirebaseAuth.instance.currentUser;
   }
+
+  // MATERIAL CRUD
+
+  /// Obtiene todos los materiales
+  Future<QuerySnapshot> getAllMaterials() {
+    return firestore.collection('material').get();
+  }
+
+  /// Obtiene un material por su ID
+  Future<DocumentSnapshot> getMaterialById(String id) {
+    return firestore.collection('material').doc(id).get();
+  }
+
+  /// Crea un nuevo material
+  Future<void> createMaterial(Map<String, dynamic> data) {
+    return firestore.collection('material').add(data);
+  }
+
+  /// Actualiza un material existente
+  Future<void> updateMaterial(String id, Map<String, dynamic> data) {
+    return firestore.collection('material').doc(id).update(data);
+  }
+
+  /// Elimina un material
+  Future<void> deleteMaterial(String id) {
+    return firestore.collection('material').doc(id).delete();
+  }
+
+  // ——— Usuarios CRUD ———
+
+  /// Añade un nuevo usuario (usa el mismo método que createUser si quieres)
+  Future<void> addUserData(Map<String, dynamic> data) {
+    return firestore.collection('usuarios').add(data);
+  }
+
+  /// Actualiza datos de un usuario por su ID
+  Future<void> updateUserData(String id, Map<String, dynamic> data) {
+    return firestore.collection('usuarios').doc(id).update(data);
+  }
+
+  /// Obtiene el documento de un usuario por su ID
+  Future<DocumentSnapshot> getUserById(String id) {
+    return firestore.collection('usuarios').doc(id).get();
+  }
+
+  /// Elimina un usuario por su ID
+  Future<void> deleteUserData(String id) {
+    return firestore.collection('usuarios').doc(id).delete();
+  }
+
+  /// Busca usuarios por correo (retorna QuerySnapshot)
+  Future<QuerySnapshot> findUserByEmail(String email) {
+    return firestore
+        .collection('usuarios')
+        .where('correo', isEqualTo: email)
+        .get();
+  }
+
+  static Future<QuerySnapshot<Map<String, dynamic>>> getStudentsWithoutMonitor() async {
+    return FirebaseFirestore.instance
+        .collection('estudiantes')
+        .where('monitor', isEqualTo: '')
+        .get();
+  }
+
 }

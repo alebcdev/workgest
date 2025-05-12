@@ -31,7 +31,7 @@ class HomeWidget extends StatelessWidget {
         SizedBox(height: 10),
         InkWell(
           onTap: () {
-            AppNavigation.changeRoute(context, route);
+            AppNavegationProvider().changeRoute(route);
           },
           child: Icon(
             icon,

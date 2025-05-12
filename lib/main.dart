@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:workgest/screens/login_screen.dart';
@@ -16,15 +17,15 @@ import 'package:workgest/screens/user_list_screen.dart';
 import 'package:workgest/screens/user_registration_screen.dart';
 import 'package:workgest/screens/user_profile_screen.dart';
 import 'package:workgest/screens/weather_screen.dart';
-void main() async{
+import 'model/user_item.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(const MyApp());
 }
-
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -35,37 +36,80 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AppNavegationProvider()),
       ],
-      child: MaterialApp(
-        title: 'Autenticación de Workgest',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurpleAccent),
-          useMaterial3: true,
-        ),
-        navigatorKey: AppNavegationProvider().navigatorKey,
-        initialRoute: '/login',
-        routes: {
-          '/login': (context) => const LoginScreen(),
-          '/userList': (context) => const UserListScreen(),
-          '/userManage': (context) => const UserManageScreen(),
-          '/userRegistration': (context) => const UserRegistrationScreen(),
-          '/updateUser': (context) => const UpdateUserScreen(),
-          '/userProfile': (context) => const UserProfileScreen(),
-          '/summerCamperManage': (context) => const SummercamperManageScreen(),
-          '/summerCamperRegistration': (context) => const SummercamperRegistrationScreen(),
-          '/attendanceList': (context) => const AttendanceListScreen(),
-          '/weather': (context) => const WeatherScreen(),
-          '/material': (context) => const MaterialScreen(),
-          '/schedule': (context) => const HorarioScreen(),
+      child: Builder(
+        builder: (context) {
+          final navigatorKey = Provider.of<AppNavegationProvider>(context, listen: false).navigatorKey;
+          return MaterialApp(
+            title: 'Autenticación de Workgest',
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurpleAccent),
+              useMaterial3: true,
+            ),
+            navigatorKey: navigatorKey,
+            initialRoute: '/login',
+            routes: {
+              '/login': (context) => const LoginScreen(),
+              '/userList': (context) => const UserListScreen(),
+              '/userRegistration': (context) => const UserRegistrationScreen(),
+              '/summerCamperRegistration': (context) => const SummerCamperRegistrationScreen(),
+              '/weather': (context) => const WeatherScreen(),
+            },
+            onGenerateRoute: (settings) {
+              switch (settings.name) {
+                case '/userProfile':
+                  final user = settings.arguments as User;
+                  return MaterialPageRoute(
+                    builder: (context) => MyProfileScreen(user),
+                  );
 
-        },
-        onGenerateRoute: (settings) {
-          if (settings.name == '/userAdmin') {
-            return MaterialPageRoute(builder: (context) => const UserAdminScreen());
-          }
-          // Handle other routes or return null for unhandled routes
-          return null;
-        },
+                case '/summerCamperManage':
+                  final user = settings.arguments as User;
+                  return MaterialPageRoute(
+                    builder: (context) => SummerCamperManage(user),
+                  );
 
+                case '/attendanceList':
+                  final user = settings.arguments as User;
+                  return MaterialPageRoute(
+                    builder: (context) => AttendanceListScreen(user),
+                  );
+
+                case '/material':
+                  final user = settings.arguments as User;
+                  return MaterialPageRoute(
+                    builder: (context) => MaterialScreen(user),
+                  );
+
+                case '/schedule':
+                  final user = settings.arguments as User;
+                  return MaterialPageRoute(
+                    builder: (context) => HorarioScreen(user),
+                  );
+
+                case '/userAdmin':
+                  final user = settings.arguments as User;
+                  return MaterialPageRoute(
+                    builder: (context) => UserAdminScreen(user: user),
+                  );
+
+                case '/userManage':
+                  final user = settings.arguments as User;
+                  return MaterialPageRoute(
+                    builder: (context) => UserManage(user),
+                  );
+
+                case '/updateUser':
+                  final userItem = settings.arguments as UserItem;
+                  return MaterialPageRoute(
+                    builder: (context) => UpdateUserScreen(userItem: userItem),
+                  );
+
+                default:
+                  return null;
+              }
+            },
+          );
+        },
       ),
     );
   }

@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:workgest/model/user_item.dart';
 import 'package:workgest/managers/user_manager.dart';
 
 class UpdateUserScreen extends StatefulWidget {
   final UserItem userItem;
-  final UserManager userManager = UserManager();
 
-  const UpdateUserScreen({
+  UpdateUserScreen({
     Key? key,
     required this.userItem,
-  });
+  }) : super(key: key);
 
   @override
   _UpdateUserScreenState createState() => _UpdateUserScreenState();
 }
 
 class _UpdateUserScreenState extends State<UpdateUserScreen> {
-  late TextEditingController _nameController;
-  late TextEditingController _emailController;
-  late TextEditingController _typeController;
+  late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _typeController;
+  final UserManager _userManager = UserManager();
 
   @override
   void initState() {
@@ -31,9 +30,9 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
 
   @override
   void dispose() {
-    _nombreController.dispose();
-    _apellidoController.dispose();
-    _rolController.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _typeController.dispose();
     super.dispose();
   }
 
@@ -44,8 +43,13 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
       email: _emailController.text.trim(),
       type: _typeController.text.trim(),
     );
+
     try {
-      await widget.userManager.updateUser(updatedUser);
+      await _userManager.updateUser(
+        updatedUser,
+        oldMonitorName: widget.userItem.name,
+        newMonitorName: _nameController.text.trim(),
+      );
       Navigator.of(context).pop();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -59,32 +63,49 @@ class _UpdateUserScreenState extends State<UpdateUserScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Update User'),
+        actions: [
+          TextButton(
+            onPressed: _updateUser,
+            child: const Text('Save', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
-      content: SingleChildScrollView(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Name'),
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'Email'),
               keyboardType: TextInputType.emailAddress,
             ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _typeController,
+              decoration: const InputDecoration(labelText: 'Type'),
+            ),
+            const SizedBox(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: _updateUser,
+                  child: const Text('Save'),
+                ),
+              ],
+            ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          child: const Text('Cancel'),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        ElevatedButton(
-          onPressed: _updateUser,
-          child: const Text('Save'),
-        ),
-      ],
     );
   }
 }
