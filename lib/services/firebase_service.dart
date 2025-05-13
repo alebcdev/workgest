@@ -22,23 +22,52 @@ class FirebaseService {
   }
 
   // --------------------- Auth ---------------------
-  static Future<User?> signInUsingEmailAndPass({
+  static Future<User> signInUsingEmailAndPass({
     required String email,
     required String password,
   }) async {
     try {
-      final _auth = FirebaseAuth.instance;
-      final credential = await _auth.signInWithEmailAndPassword(email: email, password: password);
-      return credential.user;
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        print('Usuario no encontrado');
-      } else if (e.code == 'wrong-password') {
-        print('Contraseña incorrecta');
+      final auth = FirebaseAuth.instance;
+      final firestore = FirebaseFirestore.instance;
+
+      final credential = await auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final user = credential.user;
+
+      if (user == null) {
+        throw Exception("No se pudo iniciar sesión. Usuario no encontrado.");
       }
-      return null;
+
+      final userDocRef = firestore.collection('usuarios').doc(user.uid);
+      final userDoc = await userDocRef.get();
+
+      if (!userDoc.exists) {
+        await userDocRef.set({
+          'email': user.email,
+          'createdAt': FieldValue.serverTimestamp(),
+          'uid': user.uid,
+        });
+      }
+
+      return user;
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'user-not-found':
+          throw Exception('Usuario no encontrado');
+        case 'wrong-password':
+          throw Exception('Contraseña incorrecta');
+        case 'invalid-email':
+          throw Exception('Correo inválido');
+        default:
+          throw Exception('Error de autenticación: ${e.message}');
+      }
+    } catch (e) {
+      throw Exception('Error inesperado: ${e.toString()}');
     }
   }
+
 
   static Future<User?> signUpUsingEmailAndPass({
     required String name,
@@ -47,19 +76,39 @@ class FirebaseService {
   }) async {
     try {
       final _auth = FirebaseAuth.instance;
-      final credential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
       final user = credential.user;
+
       if (user != null) {
         await user.updateDisplayName(name);
         await user.reload();
+
+        // Crear perfil del usuario en Firestore
+        await FirebaseFirestore.instance
+            .collection('usuarios')
+            .doc(user.uid)
+            .set({
+          'name': name,
+          'email': email,
+          'uid': user.uid,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+
         return _auth.currentUser;
       }
+
       return null;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
-        print('Weak password');
+        print('Contraseña débil');
       } else if (e.code == 'email-already-in-use') {
-        print('Email already in use');
+        print('El correo ya está en uso');
+      } else {
+        print('Auth error: ${e.message}');
       }
       return null;
     }

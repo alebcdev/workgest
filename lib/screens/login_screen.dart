@@ -88,61 +88,65 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             _errorMessage != null
                 ? Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: screenHeight * 0.01,
-                        horizontal: screenWidth * 0.03),
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  )
+              padding: EdgeInsets.symmetric(
+                  vertical: screenHeight * 0.01,
+                  horizontal: screenWidth * 0.03),
+              child: Text(
+                _errorMessage!,
+                style: const TextStyle(color: Colors.red),
+              ),
+            )
                 : Container(),
             _processing
                 ? const CircularProgressIndicator()
                 : Padding(
-                    padding: EdgeInsets.all(screenHeight * 0.01),
-                    child: SizedBox(
-                      width: buttonWidth,
-                      height: buttonHeight,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          _focusPassword.unfocus();
-                          _focusEmail.unfocus();
+              padding: EdgeInsets.all(screenHeight * 0.01),
+              child: SizedBox(
+                width: buttonWidth,
+                height: buttonHeight,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    _focusPassword.unfocus();
+                    _focusEmail.unfocus();
 
-                          setState(() {
-                            _processing = true;
-                            _errorMessage = null;
-                          });
+                    setState(() {
+                      _processing = true;
+                      _errorMessage = null;
+                    });
 
-                          User? user =
-                              await FirebaseService.signInUsingEmailAndPass(
-                                  email: _emailFieldController.text,
-                                  password: _passwordFieldController.text);
-                          setState(() {
-                            _processing = false;
-                          });
+                    User? user =
+                    await FirebaseService.signInUsingEmailAndPass(
+                        email: _emailFieldController.text,
+                        password: _passwordFieldController.text);
+                    setState(() {
+                      _processing = false;
+                    });
 
-                          setState(() {
-                            _errorMessage = "Error al iniciar sesión: $user";
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(screenHeight * 0.025),
-                          ),
-                        ),
-                        child: Text(
-                          'Login',
-                          style: TextStyle(
-                            fontSize: screenHeight * 0.025,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
+                    if (user != null) {
+                      Navigator.pushReplacementNamed(context, '/home');
+                    } else {
+                      setState(() {
+                        _errorMessage = "Error al iniciar sesión. Verifica tus credenciales.";
+                      });
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                      BorderRadius.circular(screenHeight * 0.025),
                     ),
                   ),
+                  child: Text(
+                    'Login',
+                    style: TextStyle(
+                      fontSize: screenHeight * 0.025,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
             Padding(
               padding: EdgeInsets.all(screenHeight * 0.01),
               child: TextButton(

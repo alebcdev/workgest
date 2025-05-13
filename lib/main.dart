@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:workgest/screens/login_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:workgest/screens/attendance_list_screen.dart';
+import 'package:workgest/screens/home_screen.dart';
 import 'package:workgest/screens/horario_screen.dart';
 import 'package:workgest/screens/material_screen.dart';
 import 'package:workgest/screens/summercamper_manage_screen.dart';
@@ -17,12 +18,22 @@ import 'package:workgest/screens/user_list_screen.dart';
 import 'package:workgest/screens/user_registration_screen.dart';
 import 'package:workgest/screens/user_profile_screen.dart';
 import 'package:workgest/screens/weather_screen.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'model/user_item.dart';
+import 'package:flutter/foundation.dart';
+import 'package:workgest/providers/weather_provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
+  );
+  // Initialize App Check with a debug provider for development
+  await dotenv.load(fileName: ".env");
+  await FirebaseAppCheck.instance.activate(
+    // You can use DebugProvider during development
+    androidProvider: kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
   );
   runApp(const MyApp());
 }
@@ -35,6 +46,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AppNavegationProvider()),
+        ChangeNotifierProvider(create: (_) => WeatherProvider()),
       ],
       child: Builder(
         builder: (context) {
@@ -49,6 +61,8 @@ class MyApp extends StatelessWidget {
             initialRoute: '/login',
             routes: {
               '/login': (context) => const LoginScreen(),
+              '/home': (context) => const HomeScreen(), // Register the new home route
+              '/registerUser': (context) => const UserRegistrationScreen(),
               '/userList': (context) => const UserListScreen(),
               '/userRegistration': (context) => const UserRegistrationScreen(),
               '/summerCamperRegistration': (context) => const SummerCamperRegistrationScreen(),
