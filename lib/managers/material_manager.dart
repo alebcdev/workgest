@@ -32,4 +32,18 @@ class MaterialManager {
   static Future<void> updateMaterialAvailability(String id, int newAvailability){
     return FirebaseService.updateMaterialAvailability(id, newAvailability);
   }
+
+  static Future<void> addOrUpdateMaterial(String? id, String name, String description, int quantity) {
+    final material = MaterialItem(
+      id: id ?? '', // Provide an empty string if id is null
+      name: name,
+      description: description,
+      quantity: quantity,
+    );
+    if (id == null) {
+      return FirebaseService().createMaterial(material.toJson());
+    } else {
+      return FirebaseService().updateMaterial(id, material.toJson());
+    }
+  }
 }

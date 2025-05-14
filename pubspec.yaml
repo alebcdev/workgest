@@ -55,6 +55,8 @@ dependencies:
   provider: ^6.1.5
   firebase_app_check: ^0.3.2+5
   flutter_dotenv: ^5.2.1
+  intl: ^0.20.2
+  flutter_speed_dial: ^7.0.0
 
 dev_dependencies:
   flutter_test:
@@ -84,10 +86,11 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/logo.png
-    - assets/images/kayak.png
+    - assets/images/paddlesurf.png
     - assets/images/windsurf.png
-    - assets/images/vela.png
+    - assets/images/sailing.png
     - assets/images/kayak.png
+    - .env
 
   #   - images/a_dot_ham.jpeg
 

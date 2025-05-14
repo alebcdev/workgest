@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:workgest/managers/schedule_manager.dart';
 
 class HorarioScreen extends StatefulWidget {
-  final User user;
+  final User? user; // Make user nullable
 
   const HorarioScreen(this.user, {super.key});
 
@@ -27,17 +27,24 @@ class _HorarioScreenState extends State<HorarioScreen> {
     ]);
 
     _loadSchedules();
-    // Ahora existe getUserRole
-    ScheduleManager.getUserRole(widget.user).then((role) {
-      if (mounted) {
-        setState(() {
-          userRol = role ?? '';
-          if (userRol == 'Administrador') {
-            _loadCSVFilePath();
-          }
-        });
-      }
-    });
+    // Get the current user if widget.user is null
+    final currentUser = widget.user ?? FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      ScheduleManager.getUserRole(currentUser).then((role) {
+        if (mounted) {
+          setState(() {
+            userRol = role ?? '';
+            if (userRol == 'Administrador') {
+              _loadCSVFilePath();
+            }
+          });
+        }
+      });
+    } else {
+      // Handle the case where there is no authenticated user
+      // You might want to navigate to the login screen or show an error
+      print("No authenticated user found for HorarioScreen.");
+    }
   }
 
   @override

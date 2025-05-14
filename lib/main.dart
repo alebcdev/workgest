@@ -71,46 +71,74 @@ class MyApp extends StatelessWidget {
             onGenerateRoute: (settings) {
               switch (settings.name) {
                 case '/userProfile':
-                  final user = settings.arguments as User;
-                  return MaterialPageRoute(
-                    builder: (context) => MyProfileScreen(user),
-                  );
+                  if (settings.arguments is User) {
+                    final user = settings.arguments as User;
+                    return MaterialPageRoute(
+                      builder: (context) => MyProfileScreen(user),
+                    );
+                  } else {
+                    return MaterialPageRoute(builder: (context) => const HomeScreen()); // Handle null user
+                  }
 
                 case '/summerCamperManage':
-                  final user = settings.arguments as User;
-                  return MaterialPageRoute(
-                    builder: (context) => SummerCamperManage(user),
-                  );
+                  if (settings.arguments is User) {
+                    final user = settings.arguments as User;
+                    return MaterialPageRoute(
+                      builder: (context) => SummerCamperManage(user),
+                    );
+                  } else {
+                    return MaterialPageRoute(builder: (context) => const HomeScreen()); // Handle null user
+                  }
 
                 case '/attendanceList':
-                  final user = settings.arguments as User;
-                  return MaterialPageRoute(
-                    builder: (context) => AttendanceListScreen(user),
-                  );
+                  if (settings.arguments is User) {
+                    final user = settings.arguments as User;
+                    return MaterialPageRoute(
+                      builder: (context) => AttendanceListScreen(user),
+                    );
+                  } else {
+                    return MaterialPageRoute(builder: (context) => const HomeScreen()); // Handle null user
+                  }
 
                 case '/material':
-                  final user = settings.arguments as User;
-                  return MaterialPageRoute(
-                    builder: (context) => MaterialScreen(user),
-                  );
+                  if (settings.arguments is User) {
+                    final user = settings.arguments as User;
+                    return MaterialPageRoute(
+                      builder: (context) => MaterialScreen(user),
+                    );
+                  } else {
+                    return MaterialPageRoute(builder: (context) => const HomeScreen()); // Handle null user
+                  }
 
                 case '/schedule':
-                  final user = settings.arguments as User;
-                  return MaterialPageRoute(
-                    builder: (context) => HorarioScreen(user),
-                  );
+                  if (settings.arguments is User) {
+                    final user = settings.arguments as User;
+                    return MaterialPageRoute(
+                      builder: (context) => HorarioScreen(user),
+                    );
+                  } else {
+                    return MaterialPageRoute(builder: (context) => const HomeScreen()); // Handle null user
+                  }
 
                 case '/userAdmin':
-                  final user = settings.arguments as User;
-                  return MaterialPageRoute(
-                    builder: (context) => UserAdminScreen(user: user),
-                  );
+                  if (settings.arguments is User) {
+                    final user = settings.arguments as User;
+                    return MaterialPageRoute(
+                      builder: (context) => UserAdminScreen(user: user),
+                    );
+                  } else {
+                    return MaterialPageRoute(builder: (context) => const HomeScreen()); // Handle null user
+                  }
 
                 case '/userManage':
-                  final user = settings.arguments as User;
-                  return MaterialPageRoute(
-                    builder: (context) => UserManage(user),
-                  );
+                  if (settings.arguments is User) {
+                    final user = settings.arguments as User;
+                    return MaterialPageRoute(
+                      builder: (context) => UserManage(user),
+                    );
+                  } else {
+                    return MaterialPageRoute(builder: (context) => const HomeScreen()); // Handle null user
+                  }
 
                 case '/updateUser':
                   final userItem = settings.arguments as UserItem;

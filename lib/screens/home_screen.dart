@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:workgest/widgets/dashboard_card.dart'; // Assuming you have this widget
 import 'package:workgest/widgets/action_button.dart'; // Assuming you have this widget
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:workgest/widgets/notification_tile.dart'; // Assuming you have this widget
 
 class HomeScreen extends StatelessWidget {
@@ -69,7 +70,14 @@ class HomeScreen extends StatelessWidget {
                   title: 'Manage Materials',
                   icon: Icons.inventory,
                   onTap: () {
-                    Navigator.pushNamed(context, '/material'); // Example route
+                    final user = FirebaseAuth.instance.currentUser;
+                    if (user != null) {
+                      Navigator.pushNamed(context, '/material', arguments: user);
+                    } else {
+                      // Handle the case where the user is not logged in,
+                      // e.g., navigate to the login screen or show a message.
+                      // For now, we'll do nothing or you can add a snackbar.
+                    }
                   },
                 ),
                 const SizedBox(height: 16.0),

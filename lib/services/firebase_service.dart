@@ -168,7 +168,7 @@ class FirebaseService {
   // --------------------- Material ---------------------
   static Future<void> updateMaterialAvailability(String id, int newAvailability) async {
     await FirebaseFirestore.instance.collection('material').doc(id).update({
-      'available': newAvailability,
+      'quantity': newAvailability,
     });
   }
 
@@ -177,7 +177,7 @@ class FirebaseService {
     try {
       final query = await FirebaseFirestore.instance
           .collection('usuarios')
-          .where('correo', isEqualTo: userEmail)
+          .where('email', isEqualTo: userEmail)
           .limit(1)
           .get();
       if (query.docs.isNotEmpty) {
