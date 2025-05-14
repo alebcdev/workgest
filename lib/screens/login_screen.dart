@@ -7,15 +7,13 @@ import '../services/firebase_service.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
-// Renamed to match file (Optional, but good practice)
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailFieldController = TextEditingController();
-  final _passwordFieldController = TextEditingController();
-
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _focusEmail = FocusNode();
   final _focusPassword = FocusNode();
 
@@ -24,17 +22,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _emailFieldController.dispose();
-    _passwordFieldController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-    double screenWidth = MediaQuery.of(context).size.width;
-    double buttonWidth = screenWidth * 0.4;
-    double buttonHeight = screenHeight * 0.05;
+    final screenSize = MediaQuery.of(context).size;
 
     return GestureDetector(
       onTap: () {
@@ -42,129 +37,132 @@ class _LoginScreenState extends State<LoginScreen> {
         _focusPassword.unfocus();
       },
       child: Scaffold(
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.supervised_user_circle,
-              size: screenHeight * 0.1,
-              color: Colors.blue,
-            ),
-            Text(
-              'Inicio de Sesión',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            SizedBox(height: screenHeight * 0.02),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                  vertical: screenHeight * 0.01,
-                  horizontal: screenWidth * 0.03),
-              child: TextField(
-                controller: _emailFieldController,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(height: screenSize.height * 0.15),
+              const Icon(Icons.lock_outline, size: 100, color: Colors.blueAccent),
+              const SizedBox(height: 20),
+              Text(
+                'Welcome Back',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Login to continue',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 30),
+              _buildTextField(
+                controller: _emailController,
                 focusNode: _focusEmail,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(screenHeight * 0.02),
-                  ),
-                  hintText: 'Email',
-                ),
+                hintText: 'Email',
+                icon: Icons.email,
               ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                  vertical: screenHeight * 0.01,
-                  horizontal: screenWidth * 0.03),
-              child: TextField(
-                controller: _passwordFieldController,
+              const SizedBox(height: 20),
+              _buildTextField(
+                controller: _passwordController,
                 focusNode: _focusPassword,
+                hintText: 'Password',
+                icon: Icons.lock,
                 obscureText: true,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(screenHeight * 0.02),
-                  ),
-                  hintText: 'Contraseña',
-                ),
               ),
-            ),
-            _errorMessage != null
-                ? Padding(
-              padding: EdgeInsets.symmetric(
-                  vertical: screenHeight * 0.01,
-                  horizontal: screenWidth * 0.03),
-              child: Text(
-                _errorMessage!,
-                style: const TextStyle(color: Colors.red),
-              ),
-            )
-                : Container(),
-            _processing
-                ? const CircularProgressIndicator()
-                : Padding(
-              padding: EdgeInsets.all(screenHeight * 0.01),
-              child: SizedBox(
-                width: buttonWidth,
-                height: buttonHeight,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    _focusPassword.unfocus();
-                    _focusEmail.unfocus();
-
-                    setState(() {
-                      _processing = true;
-                      _errorMessage = null;
-                    });
-
-                    User? user =
-                    await FirebaseService.signInUsingEmailAndPass(
-                        email: _emailFieldController.text,
-                        password: _passwordFieldController.text);
-                    setState(() {
-                      _processing = false;
-                    });
-
-                    if (user != null) {
-                      Navigator.pushReplacementNamed(context, '/home');
-                    } else {
-                      setState(() {
-                        _errorMessage = "Error al iniciar sesión. Verifica tus credenciales.";
-                      });
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                      BorderRadius.circular(screenHeight * 0.025),
-                    ),
-                  ),
+              if (_errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
                   child: Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: screenHeight * 0.025,
-                      color: Colors.white,
+                    _errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
+              const SizedBox(height: 30),
+              _processing
+                  ? const CircularProgressIndicator()
+                  : SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16.0),
                     ),
+                  ),
+                  child: const Text(
+                    'Login',
+                    style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(screenHeight * 0.01),
-              child: TextButton(
+              const SizedBox(height: 20),
+              TextButton(
                 onPressed: () {
                   Provider.of<AppNavegationProvider>(context, listen: false)
                       .changeRoute('/registerUser');
                 },
-                child: Text(
-                  '¿No tienes cuenta? Regístrate aquí',
-                  style: TextStyle(
-                    fontSize: screenHeight * 0.02,
-                  ),
+                child: const Text(
+                  "Don't have an account? Sign up",
+                  style: TextStyle(fontSize: 16),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required String hintText,
+    required IconData icon,
+    bool obscureText = false,
+  }) {
+    return TextField(
+      controller: controller,
+      focusNode: focusNode,
+      obscureText: obscureText,
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon),
+        hintText: hintText,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        filled: true,
+        fillColor: Colors.grey.shade100,
+      ),
+    );
+  }
+
+  Future<void> _handleLogin() async {
+    _focusEmail.unfocus();
+    _focusPassword.unfocus();
+
+    setState(() {
+      _processing = true;
+      _errorMessage = null;
+    });
+
+    final user = await FirebaseService.signInUsingEmailAndPass(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
+
+    setState(() {
+      _processing = false;
+    });
+
+    if (user != null) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      setState(() {
+        _errorMessage = 'Login failed. Please check your credentials.';
+      });
+    }
   }
 }

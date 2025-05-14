@@ -55,6 +55,7 @@ dependencies:
   provider: ^6.1.5
   firebase_app_check: ^0.3.2+5
   flutter_dotenv: ^5.2.1
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
@@ -88,6 +89,7 @@ flutter:
     - assets/images/windsurf.png
     - assets/images/vela.png
     - assets/images/kayak.png
+    - .env
 
   #   - images/a_dot_ham.jpeg
 
