@@ -55,6 +55,7 @@ dependencies:
   provider: ^6.1.5
   firebase_app_check: ^0.3.2+5
   flutter_dotenv: ^5.2.1
+  flutter_speed_dial: ^7.0.0
 
 dev_dependencies:
   flutter_test:
