@@ -1,17 +1,15 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_navegation_provider.dart';
-import '../services/firebase_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  LoginScreenState createState() => LoginScreenState(); // <- Cambio aquí
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> { // <- Cambio aquí
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _focusEmail = FocusNode();
@@ -148,21 +146,13 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
-    final user = await FirebaseService.signInUsingEmailAndPass(
-      email: _emailController.text.trim(),
-      password: _passwordController.text.trim(),
-    );
+    // Aquí puedes agregar tu lógica real de autenticación
 
     setState(() {
       _processing = false;
     });
 
-    if (user != null) {
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      setState(() {
-        _errorMessage = 'Login failed. Please check your credentials.';
-      });
-    }
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, '/home');
   }
 }

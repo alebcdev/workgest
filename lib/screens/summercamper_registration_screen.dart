@@ -8,17 +8,17 @@ class SummerCamperRegistrationScreen extends StatefulWidget {
   const SummerCamperRegistrationScreen({super.key, this.camperToEdit});
 
   @override
-  _SummerCamperRegistrationScreenState createState() =>
-      _SummerCamperRegistrationScreenState();
+  SummerCamperRegistrationScreenState createState() =>
+      SummerCamperRegistrationScreenState();
 }
 
-class _SummerCamperRegistrationScreenState
+class SummerCamperRegistrationScreenState
     extends State<SummerCamperRegistrationScreen> {
-  final _nameFieldController     = TextEditingController();
+  final _nameFieldController = TextEditingController();
   final _apellidoFieldController = TextEditingController();
-  final _ageFieldController      = TextEditingController();
-  final _monitorFieldController  = TextEditingController();
-  final _groupFieldController    = TextEditingController();
+  final _ageFieldController = TextEditingController();
+  final _monitorFieldController = TextEditingController();
+  final _groupFieldController = TextEditingController();
 
   bool _processing = false;
   String _statusMessage = "";
@@ -31,11 +31,11 @@ class _SummerCamperRegistrationScreenState
     // If editing, prefill
     if (widget.camperToEdit != null) {
       final c = widget.camperToEdit!;
-      _nameFieldController.text     = c.nombre;
+      _nameFieldController.text = c.nombre;
       _apellidoFieldController.text = c.apellido;
-      _ageFieldController.text      = c.edad.toString();
-      _monitorFieldController.text  = c.monitor;
-      _groupFieldController.text    = c.group;
+      _ageFieldController.text = c.edad.toString();
+      _monitorFieldController.text = c.monitor;
+      _groupFieldController.text = c.group;
     }
   }
 
@@ -50,11 +50,11 @@ class _SummerCamperRegistrationScreenState
   }
 
   Future<void> _saveCamper() async {
-    final nombre  = _nameFieldController.text.trim();
-    final apellido= _apellidoFieldController.text.trim();
+    final nombre = _nameFieldController.text.trim();
+    final apellido = _apellidoFieldController.text.trim();
     final edadStr = _ageFieldController.text.trim();
     final monitor = _monitorFieldController.text.trim();
-    final group   = _groupFieldController.text.trim();
+    final group = _groupFieldController.text.trim();
 
     if ([nombre, apellido, edadStr, monitor, group].any((s) => s.isEmpty)) {
       setState(() => _statusMessage = "Por favor completa todos los campos.");

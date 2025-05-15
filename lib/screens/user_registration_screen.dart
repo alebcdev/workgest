@@ -2,18 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../managers/user_manager.dart';
-
 enum RadioOpciones { Administrador, Estandard }
 
 class UserRegistrationScreen extends StatefulWidget {
   const UserRegistrationScreen({super.key});
 
   @override
-  _UserRegistrationScreenState createState() => _UserRegistrationScreenState();
+  UserRegistrationScreenState createState() => UserRegistrationScreenState();
 }
 
-class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
+class UserRegistrationScreenState extends State<UserRegistrationScreen> {
   final _nameFieldController = TextEditingController();
   final _apellidoFieldController = TextEditingController(); // No se usa, pero lo dejé por si es necesario
   final _emailFieldController = TextEditingController(); // ✅ Agregado
@@ -23,7 +21,6 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
   RadioOpciones _opcionRol = RadioOpciones.Estandard;
 
   final _focusName = FocusNode();
-  final _focusApellido = FocusNode();
   final _focusEmail = FocusNode();
 
   bool _processing = false;

@@ -12,10 +12,10 @@ class MaterialScreen extends StatefulWidget {
   const MaterialScreen(this.user, {super.key});
 
   @override
-  _MaterialScreenState createState() => _MaterialScreenState();
+  MaterialScreenState createState() => MaterialScreenState();
 }
 
-class _MaterialScreenState extends State<MaterialScreen> {
+class MaterialScreenState extends State<MaterialScreen> {
   final Stream<QuerySnapshot> _materialStream = MaterialManager.getMaterialStream();
   String userRol = '';
   bool isLoading = true;

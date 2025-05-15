@@ -1,22 +1,19 @@
-// lib/screens/weather_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 import 'package:workgest/providers/weather_provider.dart';
 import 'package:workgest/model/weather_data.dart';
-import 'package:workgest/model/daily_forecast.dart';
 import 'package:workgest/model/hourly_forecast.dart';
 
 class WeatherScreen extends StatefulWidget {
   const WeatherScreen({super.key});
 
   @override
-  _WeatherScreenState createState() => _WeatherScreenState();
+  WeatherScreenState createState() => WeatherScreenState();
 }
 
-class _WeatherScreenState extends State<WeatherScreen> {
+class WeatherScreenState extends State<WeatherScreen> {
   final TextEditingController _cityController = TextEditingController();
 
   @override
@@ -184,7 +181,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
 class CurrentWeatherCard extends StatelessWidget {
   final WeatherData weather;
 
-  const CurrentWeatherCard({Key? key, required this.weather}) : super(key: key);
+  const CurrentWeatherCard({super.key, required this.weather});
 
   @override
   Widget build(BuildContext context) {
@@ -219,7 +216,7 @@ class CurrentWeatherCard extends StatelessWidget {
 class HourlyForecastList extends StatelessWidget {
   final List<HourlyForecast> hourlyData;
 
-  const HourlyForecastList({Key? key, required this.hourlyData}) : super(key: key);
+  const HourlyForecastList({super.key, required this.hourlyData});
 
   @override
   Widget build(BuildContext context) {

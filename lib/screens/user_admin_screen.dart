@@ -10,10 +10,10 @@ class UserAdminScreen extends StatefulWidget {
   const UserAdminScreen({super.key, required this.user});
 
   @override
-  _UserAdminScreenState createState() => _UserAdminScreenState();
+  UserAdminScreenState createState() => UserAdminScreenState();
 }
 
-class _UserAdminScreenState extends State<UserAdminScreen> {
+class UserAdminScreenState extends State<UserAdminScreen> {
   late User _user;
   late String _userRole = "";
 

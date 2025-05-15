@@ -3,17 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:workgest/model/summercamper_item.dart';
 import 'package:workgest/managers/user_manager.dart';
 import 'package:workgest/managers/summer_camper_manager.dart';
-import 'package:workgest/screens/summercamper_registration_screen.dart';
 
 class SummerCamperManage extends StatefulWidget {
   final User user;
   const SummerCamperManage(this.user, {super.key});
 
   @override
-  _SummerCamperManageState createState() => _SummerCamperManageState();
+  SummerCamperManageState createState() => SummerCamperManageState();
 }
 
-class _SummerCamperManageState extends State<SummerCamperManage> {
+class SummerCamperManageState extends State<SummerCamperManage> {
   final SummerCamperManager _manager = SummerCamperManager();
   late Stream<List<SummerCamper>> _campersStream;
   String _selectedMonitor = 'Todos';

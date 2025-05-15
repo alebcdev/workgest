@@ -8,13 +8,13 @@ import 'package:workgest/managers/user_manager.dart';
 class AttendanceListScreen extends StatefulWidget {
   final User user;
 
-  const AttendanceListScreen(this.user, {Key? key}) : super(key: key);
+  const AttendanceListScreen(this.user, {super.key});
 
   @override
-  _AttendanceListScreenState createState() => _AttendanceListScreenState();
+  AttendanceListScreenState createState() => AttendanceListScreenState();
 }
 
-class _AttendanceListScreenState extends State<AttendanceListScreen> {
+class AttendanceListScreenState extends State<AttendanceListScreen> {
   late Stream<QuerySnapshot> _estudiantesStream;
   String userRol = '';
   String monitorActual = '';
@@ -34,6 +34,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
   Future<void> _getUserRoleAndMonitor() async {
     final role = await UserManager.getUserRole(widget.user);
     final monitor = await _camperManager.getMonitorForSummerCamper(widget.user.uid);
+    if (!mounted) return;
     setState(() {
       if (role != null) userRol = role;
       if (monitor != null) monitorActual = monitor;
@@ -47,6 +48,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
     for (var doc in snapshot.docs) {
       status[doc['estudianteId']] = doc['asistio'] as bool? ?? false;
     }
+    if (!mounted) return;
     setState(() => attendanceStatus = status);
   }
 
@@ -58,6 +60,7 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
 
   Future<void> _saveAttendance(String studentId, String nombre, String apellido) async {
     final asistio = attendanceStatus[studentId] ?? false;
+    final messenger = ScaffoldMessenger.of(context);
     await _camperManager.updateAttendance(
       studentId,
       nombre,
@@ -65,7 +68,8 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
       asistio,
       _selectedDate,
     );
-    ScaffoldMessenger.of(context).showSnackBar(
+    if (!mounted) return;
+    messenger.showSnackBar(
       const SnackBar(content: Text("Asistencia guardada")),
     );
   }
@@ -118,8 +122,9 @@ class _AttendanceListScreenState extends State<AttendanceListScreen> {
               lastDate: DateTime(2100),
             );
             if (pickedDate != null) {
+              if (!mounted) return;
               setState(() => _selectedDate = pickedDate);
-              _loadAttendanceStatus();
+              await _loadAttendanceStatus();
             }
           },
           child: Text(

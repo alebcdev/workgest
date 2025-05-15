@@ -65,7 +65,7 @@ class CurrentWeatherCard extends StatelessWidget {
                       // Use description from the first Weather object
                       weather.weather.isNotEmpty ? weather.weather.first.description : 'N/A', // Use description from the first Weather object
                       style: textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant.withOpacity(0.8),
+                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                       ),
                     ),
                   ],

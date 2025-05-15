@@ -7,10 +7,10 @@ class SummerCamperListScreen extends StatefulWidget {
   const SummerCamperListScreen({super.key});
 
   @override
-  _SummerCamperListScreenState createState() => _SummerCamperListScreenState();
+  SummerCamperListScreenState createState() => SummerCamperListScreenState();
 }
 
-class _SummerCamperListScreenState extends State<SummerCamperListScreen> {
+class SummerCamperListScreenState extends State<SummerCamperListScreen> {
   final SummerCamperManager _summerCamperManager = SummerCamperManager();
   List<SummerCamper> _summerCampers = [];
 

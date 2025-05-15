@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:workgest/model/weather_data.dart';
@@ -12,7 +13,9 @@ class WeatherService {
   // Fetches current weather data by city name
   Future<WeatherData?> getCurrentWeather(String city) async {
     if (_apiKey.isEmpty) {
-      print('OpenWeatherMap API key not found in environment variables.');
+      if (kDebugMode) {
+        print('OpenWeatherMap API key not found in environment variables.');
+      }
       return null;
     }
 
@@ -25,12 +28,18 @@ class WeatherService {
         final Map<String, dynamic> data = jsonDecode(response.body);
         return WeatherData.fromJson(data);
       } else {
-        print('Failed to load current weather data: ${response.statusCode}');
-        print('Response body: ${response.body}');
+        if (kDebugMode) {
+          print('Failed to load current weather data: ${response.statusCode}');
+        }
+        if (kDebugMode) {
+          print('Response body: ${response.body}');
+        }
         return null;
       }
     } catch (e) {
-      print('Error fetching current weather: $e');
+      if (kDebugMode) {
+        print('Error fetching current weather: $e');
+      }
       return null;
     }
   }
@@ -38,7 +47,9 @@ class WeatherService {
   // Fetches 5-day / 3-hour forecast data (using 'forecast' endpoint)
   Future<List<HourlyForecast>> getHourlyForecast(String city) async {
     if (_apiKey.isEmpty) {
-      print('OpenWeatherMap API key not found in environment variables.');
+      if (kDebugMode) {
+        print('OpenWeatherMap API key not found in environment variables.');
+      }
       return [];
     }
 
@@ -55,12 +66,18 @@ class WeatherService {
                 (item) => HourlyForecast.fromJson(item as Map<String, dynamic>))
             .toList();
       } else {
-        print('Failed to load hourly forecast data: ${response.statusCode}');
-        print('Response body: ${response.body}');
+        if (kDebugMode) {
+          print('Failed to load hourly forecast data: ${response.statusCode}');
+        }
+        if (kDebugMode) {
+          print('Response body: ${response.body}');
+        }
         return [];
       }
     } catch (e) {
-      print('Error fetching hourly forecast: $e');
+      if (kDebugMode) {
+        print('Error fetching hourly forecast: $e');
+      }
       return [];
     }
   }

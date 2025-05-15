@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:workgest/services/firebase_service.dart';
 import 'package:workgest/model/schedule_item.dart';
 
@@ -9,7 +10,9 @@ class ScheduleManager {
   final FirebaseService _service = FirebaseService();
 
   void _logError(dynamic e, StackTrace stack) {
-    print('ScheduleManager Error: $e\nStack: $stack');
+    if (kDebugMode) {
+      print('ScheduleManager Error: $e\nStack: $stack');
+    }
   }
 
   /// Retrieves the role of a given Firebase user.

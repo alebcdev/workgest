@@ -1,8 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:workgest/managers/user_manager.dart';
 
-import '../../model/user_item.dart';
 
 class DeleteUser extends StatefulWidget {
   final String userId;
@@ -10,9 +8,9 @@ class DeleteUser extends StatefulWidget {
   const DeleteUser({super.key, required this.userId});
 
   @override
-  _DeleteUserState createState() => _DeleteUserState();
+  DeleteUserState createState() => DeleteUserState();
 }
-class _DeleteUserState extends State<DeleteUser> {
+class DeleteUserState extends State<DeleteUser> {
   @override
   Widget build(BuildContext context) {
     double dialogPadding = MediaQuery.of(context).size.width * 0.05;

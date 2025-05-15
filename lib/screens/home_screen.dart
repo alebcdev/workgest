@@ -18,7 +18,7 @@ class HomeScreen extends StatelessWidget {
               'assets/images/logo.png', // Adjust path if necessary
               height: AppBar().preferredSize.height * 0.8,
             ),
-            SizedBox(width: 8.0), // Spacing between logo and title
+            const SizedBox(width: 8.0), // Spacing between logo and title
             Text(
               'Workgest', // Replace with your app name
               style: Theme.of(context).textTheme.titleLarge,
@@ -51,7 +51,7 @@ class HomeScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16.0),
               children: <Widget>[
                 // Example Notification Tile
-                NotificationTile(
+                const NotificationTile(
                   title: 'New Message',
                   message: 'You have a new message from the admin.',
                 ),
@@ -86,6 +86,12 @@ class HomeScreen extends StatelessWidget {
                   icon: Icons.calendar_today,
                   onTap: () {
                     Navigator.pushNamed(context, '/schedule'); // Example route
+                    final user = FirebaseAuth.instance.currentUser;
+                    if (user != null) {
+                      Navigator.pushNamed(context, '/schedule', arguments: user);
+                    } else {
+                      // Handle the case where the user is not logged in
+                    }
                   },
                 ),
                 const SizedBox(height: 16.0),

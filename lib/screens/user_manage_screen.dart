@@ -13,10 +13,10 @@ class UserManage extends StatefulWidget {
   const UserManage(this.user, {super.key});
 
   @override
-  _UserManageState createState() => _UserManageState();
+  UserManageState createState() => UserManageState();
 }
 
-class _UserManageState extends State<UserManage> {
+class UserManageState extends State<UserManage> {
   final Stream<QuerySnapshot> _usuariosStream =
       FirebaseFirestore.instance.collection('usuarios').snapshots();
 
@@ -80,7 +80,6 @@ class _UserManageState extends State<UserManage> {
               final apellido = doc['apellido'];
               final correo = doc['correo'];
               final rol = doc['rol'];
-              final group = doc['group'];
 
               return ListTile(
                 leading: Icon(
@@ -130,7 +129,7 @@ class _UserManageState extends State<UserManage> {
                 shape: const CircleBorder(),
                 onPressed: () {
                   Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => UserRegistrationScreen(),
+                    builder: (_) => const UserRegistrationScreen(),
                   ));
                 },
                 child: Icon(Icons.add, size: iconSize),

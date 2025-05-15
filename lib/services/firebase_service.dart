@@ -1,9 +1,8 @@
-import 'dart:typed_data';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import '../firebase_options.dart';
 
 class FirebaseService {
@@ -14,11 +13,14 @@ class FirebaseService {
   FirebaseService._internal();
 
   FirebaseAuth get auth => FirebaseAuth.instance;
+
   FirebaseFirestore get firestore => FirebaseFirestore.instance;
+
   FirebaseStorage get storage => FirebaseStorage.instance;
 
   Future<void> initializeFirebase() async {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
   }
 
   // --------------------- Auth ---------------------
@@ -68,15 +70,14 @@ class FirebaseService {
     }
   }
 
-
   static Future<User?> signUpUsingEmailAndPass({
     required String name,
     required String email,
     required String password,
   }) async {
     try {
-      final _auth = FirebaseAuth.instance;
-      final credential = await _auth.createUserWithEmailAndPassword(
+      final auth = FirebaseAuth.instance;
+      final credential = await auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -98,17 +99,23 @@ class FirebaseService {
           'createdAt': FieldValue.serverTimestamp(),
         });
 
-        return _auth.currentUser;
+        return auth.currentUser;
       }
 
       return null;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
-        print('Contraseña débil');
+        if (kDebugMode) {
+          print('Contraseña débil');
+        }
       } else if (e.code == 'email-already-in-use') {
-        print('El correo ya está en uso');
+        if (kDebugMode) {
+          print('El correo ya está en uso');
+        }
       } else {
-        print('Auth error: ${e.message}');
+        if (kDebugMode) {
+          print('Auth error: ${e.message}');
+        }
       }
       return null;
     }
@@ -119,27 +126,34 @@ class FirebaseService {
   }
 
   // --------------------- Streams ---------------------
-  static Stream<QuerySnapshot> getStreamUsuarios() =>
-      FirebaseFirestore.instance.collection('usuarios').orderBy('rol').snapshots();
+  static Stream<QuerySnapshot> getStreamUsuarios() => FirebaseFirestore.instance
+      .collection('usuarios')
+      .orderBy('rol')
+      .snapshots();
 
-  static Stream<QuerySnapshot> getStreamAlumnos() =>
-      FirebaseFirestore.instance.collection('estudiantes').orderBy('edad').snapshots();
+  static Stream<QuerySnapshot> getStreamAlumnos() => FirebaseFirestore.instance
+      .collection('estudiantes')
+      .orderBy('edad')
+      .snapshots();
 
   static Stream<QuerySnapshot> getStreamMaterial() =>
       FirebaseFirestore.instance.collection('material').snapshots();
 
   // --------------------- Asistencia ---------------------
   static Future<void> updateAttendanceRecord(String docId, bool asistio) async {
-    await FirebaseFirestore.instance.collection('asistencias').doc(docId).update({'asistio': asistio});
+    await FirebaseFirestore.instance
+        .collection('asistencias')
+        .doc(docId)
+        .update({'asistio': asistio});
   }
 
   static Future<void> addAttendanceRecord(
-      String estudianteId,
-      String nombre,
-      String apellido,
-      Timestamp fecha,
-      bool asistio,
-      ) async {
+    String estudianteId,
+    String nombre,
+    String apellido,
+    Timestamp fecha,
+    bool asistio,
+  ) async {
     await FirebaseFirestore.instance.collection('asistencias').add({
       'estudianteId': estudianteId,
       'nombre': nombre,
@@ -149,7 +163,8 @@ class FirebaseService {
     });
   }
 
-  static Future<QuerySnapshot> getAsistenciaByEstudianteAndDay(String estudianteId, DateTime today) {
+  static Future<QuerySnapshot> getAsistenciaByEstudianteAndDay(
+      String estudianteId, DateTime today) {
     return FirebaseFirestore.instance
         .collection('asistencias')
         .where('estudianteId', isEqualTo: estudianteId)
@@ -157,16 +172,22 @@ class FirebaseService {
         .get();
   }
 
-  static Future<QuerySnapshot<Map<String, dynamic>>> getAsistenciaByDate(DateTime date) {
+  static Future<QuerySnapshot<Map<String, dynamic>>> getAsistenciaByDate(
+      DateTime date) {
     return FirebaseFirestore.instance
         .collection('asistencias')
-        .where('fecha', isGreaterThanOrEqualTo: Timestamp.fromDate(DateTime(date.year, date.month, date.day)))
-        .where('fecha', isLessThanOrEqualTo: Timestamp.fromDate(DateTime(date.year, date.month, date.day, 23, 59, 59)))
+        .where('fecha',
+            isGreaterThanOrEqualTo:
+                Timestamp.fromDate(DateTime(date.year, date.month, date.day)))
+        .where('fecha',
+            isLessThanOrEqualTo: Timestamp.fromDate(
+                DateTime(date.year, date.month, date.day, 23, 59, 59)))
         .get();
   }
 
   // --------------------- Material ---------------------
-  static Future<void> updateMaterialAvailability(String id, int newAvailability) async {
+  static Future<void> updateMaterialAvailability(
+      String id, int newAvailability) async {
     await FirebaseFirestore.instance.collection('material').doc(id).update({
       'quantity': newAvailability,
     });
@@ -185,29 +206,41 @@ class FirebaseService {
       }
       return null;
     } catch (e) {
-      print('Error getting user role by email: $e');
+      if (kDebugMode) {
+        print('Error getting user role by email: $e');
+      }
       return null;
     }
   }
 
   // --------------------- Upload CSV / Files ---------------------
-  static Future<String> uploadFileToStorage(List<int> fileBytes, String path) async {
-    final ref = FirebaseStorage.instance.ref().child(path);
-    final uploadTask = ref.putData(Uint8List.fromList(fileBytes));
+  static Future<String> uploadFile(
+      Uint8List fileBytes, String fileName, String folderName) async {
+    final ref =
+        FirebaseStorage.instance.ref().child(folderName).child(fileName);
+    final uploadTask = ref.putData(fileBytes);
+
     final snapshot = await uploadTask.whenComplete(() {});
     return snapshot.ref.getDownloadURL();
   }
 
-  static Future<void> saveCsvFileUrl(String url) async {
-    await FirebaseFirestore.instance.collection('config').doc('schedule').set({'url': url});
+  static Future<void> saveCsvFileUrl(String downloadURL) async {
+    await FirebaseFirestore.instance
+        .collection('config')
+        .doc('schedule')
+        .set({'url': downloadURL});
   }
 
   static Future<DocumentSnapshot<Map<String, dynamic>>> getCsvFileUrl() async {
-    return FirebaseFirestore.instance.collection('config').doc('schedule').get();
+    return FirebaseFirestore.instance
+        .collection('config')
+        .doc('schedule')
+        .get();
   }
 
   // --------------------- Estudiantes ---------------------
-  static Future<void> addSummerCamper(String nombre, String apellido, int edad, String monitor) async {
+  static Future<void> addSummerCamper(
+      String nombre, String apellido, int edad, String monitor) async {
     await FirebaseFirestore.instance.collection('estudiantes').add({
       'nombre': nombre,
       'apellido': apellido,
@@ -216,7 +249,8 @@ class FirebaseService {
     });
   }
 
-  Future<void> createSummerCamper(Map<String, dynamic> summerCamperData, String group) async {
+  Future<void> createSummerCamper(
+      Map<String, dynamic> summerCamperData, String group) async {
     await FirebaseFirestore.instance.collection('estudiantes').add({
       ...summerCamperData,
       'group': group,
@@ -224,11 +258,15 @@ class FirebaseService {
   }
 
   Future<Map<String, dynamic>?> getSummerCamper(String id) async {
-    final doc = await FirebaseFirestore.instance.collection('estudiantes').doc(id).get();
+    final doc = await FirebaseFirestore.instance
+        .collection('estudiantes')
+        .doc(id)
+        .get();
     return doc.data();
   }
 
-  Future<void> updateSummerCamper(String id, Map<String, dynamic> data, String group) async {
+  Future<void> updateSummerCamper(
+      String id, Map<String, dynamic> data, String group) async {
     await FirebaseFirestore.instance.collection('estudiantes').doc(id).update({
       ...data,
       'group': group,
@@ -240,15 +278,21 @@ class FirebaseService {
   }
 
   Future<List<Map<String, dynamic>>> getAllSummerCampers() async {
-    final querySnapshot = await FirebaseFirestore.instance.collection('estudiantes').get();
+    final querySnapshot =
+        await FirebaseFirestore.instance.collection('estudiantes').get();
     return querySnapshot.docs.map((doc) => doc.data()).toList();
   }
 
-  static Future<QuerySnapshot<Map<String, dynamic>>> getStudentsByMonitor(String monitorName) async {
-    return FirebaseFirestore.instance.collection('estudiantes').where('monitor', isEqualTo: monitorName).get();
+  static Future<QuerySnapshot<Map<String, dynamic>>> getStudentsByMonitor(
+      String monitorName) async {
+    return FirebaseFirestore.instance
+        .collection('estudiantes')
+        .where('monitor', isEqualTo: monitorName)
+        .get();
   }
 
-  static Future<void> updateSummerCamperMonitor(DocumentReference ref, String newMonitor) async {
+  static Future<void> updateSummerCamperMonitor(
+      DocumentReference ref, String newMonitor) async {
     await ref.update({'monitor': newMonitor});
   }
 
@@ -260,7 +304,8 @@ class FirebaseService {
     });
   }
 
-  Future<void> updateSchedule(String id, Map<String, dynamic> data, String group) async {
+  Future<void> updateSchedule(
+      String id, Map<String, dynamic> data, String group) async {
     await FirebaseFirestore.instance.collection('schedules').doc(id).update({
       ...data,
       'group': group,
@@ -272,18 +317,23 @@ class FirebaseService {
   }
 
   Future<Map<String, dynamic>?> getSchedule(String id) async {
-    final doc = await FirebaseFirestore.instance.collection('schedules').doc(id).get();
+    final doc =
+        await FirebaseFirestore.instance.collection('schedules').doc(id).get();
     return doc.data();
   }
 
   Future<List<Map<String, dynamic>>> getAllSchedules() async {
-    final querySnapshot = await FirebaseFirestore.instance.collection('schedules').get();
+    final querySnapshot =
+        await FirebaseFirestore.instance.collection('schedules').get();
     return querySnapshot.docs.map((doc) => doc.data()).toList();
   }
 
   static Stream<List<String>> getMonitorsStream() {
-    return FirebaseFirestore.instance.collection('usuarios').snapshots().map((snapshot) =>
-        snapshot.docs.where((doc) => doc['rol'] == 'Estandard').map((doc) => '${doc['nombre']} ${doc['apellido']}').toList());
+    return FirebaseFirestore.instance.collection('usuarios').snapshots().map(
+        (snapshot) => snapshot.docs
+            .where((doc) => doc['rol'] == 'Estandard')
+            .map((doc) => '${doc['nombre']} ${doc['apellido']}')
+            .toList());
   }
 
   // --------------------- Usuarios ---------------------
@@ -294,7 +344,8 @@ class FirebaseService {
     });
   }
 
-  Future<void> updateUser(String id, Map<String, dynamic> data, String group) async {
+  Future<void> updateUser(
+      String id, Map<String, dynamic> data, String group) async {
     await FirebaseFirestore.instance.collection('usuarios').doc(id).update({
       ...data,
       'group': group,
@@ -306,21 +357,30 @@ class FirebaseService {
   }
 
   Future<Map<String, dynamic>?> getUser(String id) async {
-    final doc = await FirebaseFirestore.instance.collection('usuarios').doc(id).get();
+    final doc =
+        await FirebaseFirestore.instance.collection('usuarios').doc(id).get();
     return doc.data();
   }
 
   Future<List<Map<String, dynamic>>> getAllUsers() async {
-    final querySnapshot = await FirebaseFirestore.instance.collection('usuarios').get();
+    final querySnapshot =
+        await FirebaseFirestore.instance.collection('usuarios').get();
     return querySnapshot.docs.map((doc) => doc.data()).toList();
   }
 
   static Future<QuerySnapshot<Map<String, dynamic>>> getAdminUsers() async {
-    return FirebaseFirestore.instance.collection('usuarios').where('rol', isEqualTo: 'Admin').get();
+    return FirebaseFirestore.instance
+        .collection('usuarios')
+        .where('rol', isEqualTo: 'Admin')
+        .get();
   }
 
   static Future<bool> isEmailInUsuariosCollection(String email) async {
-    final result = await FirebaseFirestore.instance.collection('usuarios').where('correo', isEqualTo: email).limit(1).get();
+    final result = await FirebaseFirestore.instance
+        .collection('usuarios')
+        .where('correo', isEqualTo: email)
+        .limit(1)
+        .get();
     return result.docs.isNotEmpty;
   }
 
@@ -328,10 +388,12 @@ class FirebaseService {
     return isEmailInUsuariosCollection(email);
   }
 
-  static Future<bool> trySignInToCheckEmail(String email, String dummyPassword) async {
-    final _auth = FirebaseAuth.instance;
+  static Future<bool> trySignInToCheckEmail(
+      String email, String dummyPassword) async {
+    final auth = FirebaseAuth.instance;
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: dummyPassword);
+      await auth.signInWithEmailAndPassword(
+          email: email, password: dummyPassword);
       return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found' || e.code == 'wrong-password') {
@@ -402,11 +464,11 @@ class FirebaseService {
         .get();
   }
 
-  static Future<QuerySnapshot<Map<String, dynamic>>> getStudentsWithoutMonitor() async {
+  static Future<QuerySnapshot<Map<String, dynamic>>>
+      getStudentsWithoutMonitor() async {
     return FirebaseFirestore.instance
         .collection('estudiantes')
         .where('monitor', isEqualTo: '')
         .get();
   }
-
 }

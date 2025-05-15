@@ -15,10 +15,10 @@ class UpdateMyUserDialog extends StatefulWidget {
   });
 
   @override
-  _UpdateMyUserDialogState createState() => _UpdateMyUserDialogState();
+  UpdateMyUserDialogState createState() => UpdateMyUserDialogState();
 }
 
-class _UpdateMyUserDialogState extends State<UpdateMyUserDialog> {
+class UpdateMyUserDialogState extends State<UpdateMyUserDialog> {
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _typeController;

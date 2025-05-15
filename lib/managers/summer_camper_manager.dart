@@ -16,10 +16,8 @@ class SummerCamperManager {
     return true;
   }
 
-  /// Obtiene todos los campers y los mapea a SummerCamper
   Future<List<SummerCamper>> getAllSummerCampers() async {
     try {
-      // Servicio devuelve List<Map<String,dynamic>>
       final List<Map<String, dynamic>> rawList = await _service.getAllSummerCampers();
       return rawList.map((data) => SummerCamper.fromMap(data)).toList();
     } catch (e, stack) {
@@ -28,10 +26,8 @@ class SummerCamperManager {
     }
   }
 
-  /// Obtiene un camper por su ID
   Future<SummerCamper?> getSummerCamperById(String id) async {
     try {
-      // Servicio devuelve Map<String,dynamic>?
       final data = await _service.getSummerCamper(id);
       if (data != null) {
         return SummerCamper.fromMap(data);
@@ -43,7 +39,6 @@ class SummerCamperManager {
     }
   }
 
-  /// Crea un nuevo camper (mapa + group)
   Future<void> createSummerCamper(
       String nombre,
       String apellido,
@@ -56,13 +51,12 @@ class SummerCamperManager {
         'apellido': apellido,
         'edad': edad,
         'monitor': monitor,
-      }, monitor /* group */);
+      }, monitor);
     } catch (e, stack) {
       _logError(e, stack);
     }
   }
 
-  /// Actualiza un camper existente (id + mapa + group)
   Future<void> updateSummerCamper(
       String id,
       String nombre,
@@ -87,26 +81,27 @@ class SummerCamperManager {
     }
   }
 
-  /// Borra un camper por su ID
   Future<void> deleteSummerCamper(
       String id,
       BuildContext context,
       ) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     try {
       await _service.deleteSummerCamper(id);
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
+      navigator.pop();
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Alumno borrado correctamente.')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Error al borrar el alumno.')),
       );
       _logError(e);
     }
   }
 
-  /// Actualiza asistencia de un alumno
   Future<void> updateAttendance(
       String estudianteId,
       String nombre,
@@ -120,8 +115,7 @@ class SummerCamperManager {
         selectedDate.month,
         selectedDate.day,
       );
-      final snapshot =
-      await FirebaseService.getAsistenciaByEstudianteAndDay(estudianteId, today);
+      final snapshot = await FirebaseService.getAsistenciaByEstudianteAndDay(estudianteId, today);
 
       if (snapshot.docs.isNotEmpty) {
         final docId = snapshot.docs.first.id;
@@ -142,26 +136,18 @@ class SummerCamperManager {
     }
   }
 
-  /// Stream de monitores (texto)
   Stream<List<String>> getMonitorsStream() {
-    return FirebaseService
-        .getStreamUsuarios() // Stream<QuerySnapshot>
-        .map((snapshot) => snapshot.docs
+    return FirebaseService.getStreamUsuarios().map((snapshot) => snapshot.docs
         .where((doc) => doc['rol'] == 'Estandard')
         .map((doc) => '${doc['nombre']} ${doc['apellido']}')
         .toList());
   }
 
-  /// Stream de campers usando la colección 'estudiantes'
   Stream<List<SummerCamper>> getSummerCampersStream() {
-    return FirebaseService
-        .getStreamAlumnos() // Stream<QuerySnapshot>
-        .map((snapshot) => snapshot.docs
-        .map((doc) => SummerCamper.fromDocument(doc))
-        .toList());
+    return FirebaseService.getStreamAlumnos().map(
+            (snapshot) => snapshot.docs.map((doc) => SummerCamper.fromDocument(doc)).toList());
   }
 
-  /// Obtiene el monitor asignado a un camper
   Future<String?> getMonitorForSummerCamper(String id) async {
     try {
       final data = await _service.getSummerCamper(id);
@@ -172,7 +158,6 @@ class SummerCamperManager {
     }
   }
 
-  /// Consulta duplicados
   Future<bool> isDuplicateSummerCamper(
       String nombre,
       String apellido,
@@ -193,7 +178,6 @@ class SummerCamperManager {
     }
   }
 
-  /// Logueo interno en debug
   void _logError(dynamic e, [StackTrace? stack]) {
     if (kDebugMode) {
       print('SummerCamperManager Error: $e\nStack trace: $stack');

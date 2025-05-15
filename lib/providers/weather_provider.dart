@@ -64,7 +64,9 @@ class WeatherProvider with ChangeNotifier {
       _hourlyForecasts = null;
       _dailyForecasts = null;
       _errorMessage = 'Failed to fetch weather data: ${e.toString()}';
-      print('Error fetching weather: $e');
+      if (kDebugMode) {
+        print('Error fetching weather: $e');
+      }
     } finally {
       _isLoading = false;
       notifyListeners(); // Notify listeners when loading is complete or state changes

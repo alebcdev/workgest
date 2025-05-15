@@ -7,11 +7,11 @@ class HomeWidget extends StatelessWidget {
   final IconData icon;
 
   const HomeWidget({
-    Key? key,
+    super.key,
     required this.title,
     required this.route,
     required this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,7 @@ class HomeWidget extends StatelessWidget {
             fontSize: screenHeight * 0.03,
           ),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         InkWell(
           onTap: () {
             AppNavegationProvider().changeRoute(route);

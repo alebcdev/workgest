@@ -5,16 +5,16 @@ import 'package:workgest/managers/user_manager.dart';
 class UpdateUserScreen extends StatefulWidget {
   final UserItem userItem;
 
-  UpdateUserScreen({
-    Key? key,
+  const UpdateUserScreen({
+    super.key,
     required this.userItem,
-  }) : super(key: key);
+  });
 
   @override
-  _UpdateUserScreenState createState() => _UpdateUserScreenState();
+  UpdateUserScreenState createState() => UpdateUserScreenState();
 }
 
-class _UpdateUserScreenState extends State<UpdateUserScreen> {
+class UpdateUserScreenState extends State<UpdateUserScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _emailController;
   late final TextEditingController _typeController;

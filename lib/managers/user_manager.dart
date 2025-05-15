@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:workgest/model/user_item.dart';
 import 'package:workgest/services/firebase_service.dart';
@@ -82,30 +83,34 @@ class UserManager {
   }
 
   Future<void> deleteUserById(String userId, BuildContext context) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     try {
       final user = await getUserById(userId);
 
       if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Usuario no encontrado.')),
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(content: Text('Usuario no encontrado.')),
         );
         return;
       }
 
       await _firebaseService.deleteUserData(user.id);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Usuario eliminado exitosamente.')),
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(content: Text('Usuario eliminado exitosamente.')),
       );
 
-      Navigator.of(context).pop(); // cerrar el diálogo si es llamado desde uno
+      navigator.pop(); // cerrar el diálogo si es llamado desde uno
     } catch (e) {
       _logError(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al eliminar el usuario.')),
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(content: Text('Error al eliminar el usuario.')),
       );
     }
   }
+
 
 
   Future<List<UserItem>> getAllUsers() async {
@@ -143,7 +148,9 @@ class UserManager {
   }
 
   static void _logError(dynamic e, [StackTrace? stackTrace]) {
-    print('UserManager Error: $e\nStack trace: $stackTrace');
+    if (kDebugMode) {
+      print('UserManager Error: $e\nStack trace: $stackTrace');
+    }
   }
 
 
