@@ -90,7 +90,8 @@ flutter:
     - assets/images/kayak.png
     - assets/images/windsurf.png
     - assets/images/sailing.png
-    - assets/images/kayak.png
+    - assets/images/paddlesurf.png
+    - .env
 
   #   - images/a_dot_ham.jpeg
 

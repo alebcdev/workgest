@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:workgest/screens/material_screen.dart';
 import 'package:workgest/widgets/dashboard_card.dart'; // Assuming you have this widget
 import 'package:workgest/widgets/action_button.dart'; // Assuming you have this widget
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,6 +10,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -67,25 +69,27 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16.0),
                 DashboardCard(
-                  title: 'Manage Materials',
-                  icon: Icons.inventory,
-                  onTap: () {
-                    final user = FirebaseAuth.instance.currentUser;
-                    if (user != null) {
-                      Navigator.pushNamed(context, '/material', arguments: user);
-                    } else {
-                      // Handle the case where the user is not logged in,
-                      // e.g., navigate to the login screen or show a message.
-                      // For now, we'll do nothing or you can add a snackbar.
-                    }
-                  },
+                    title: 'Manage Materials',
+                    icon: Icons.inventory,
+                    onTap: () {
+                      if (user != null) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => MaterialScreen(user),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('User not logged in')),
+                        );
+                      }
+                    },
                 ),
                 const SizedBox(height: 16.0),
                 DashboardCard(
                   title: 'View Schedule',
                   icon: Icons.calendar_today,
                   onTap: () {
-                    Navigator.pushNamed(context, '/schedule'); // Example route
                     final user = FirebaseAuth.instance.currentUser;
                     if (user != null) {
                       Navigator.pushNamed(context, '/schedule', arguments: user);

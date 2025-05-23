@@ -210,7 +210,7 @@ class MaterialScreenState extends State<MaterialScreen> {
                         width: imgH,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) =>
-                            Icon(Icons.category, size: imgH),
+                            Icon(Icons.error, size: imgH, color: Colors.red,),
                       ),
                       if (isAdmin)
                         Column(

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../managers/user_manager.dart';
 import '../model/user_item.dart';
-import '../providers/app_navegation_provider.dart';
+import '../providers/app_navigation_provider.dart';
 
 class UserListScreen extends StatefulWidget {
   const UserListScreen({super.key});
@@ -53,7 +53,7 @@ class _UserListScreenState extends State<UserListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Provider.of<AppNavegationProvider>(context, listen: false).changeRoute('/register_user');
+          Provider.of<AppNavigationProvider>(context, listen: false).changeRoute('/register_user');
         },
         child: const Icon(Icons.add),
       ),

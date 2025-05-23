@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/app_navegation_provider.dart';
+import 'package:workgest/providers/app_navigation_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -70,7 +70,7 @@ class LoginScreenState extends State<LoginScreen> { // <- Cambio aquí
               if (_errorMessage != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 10.0),
-                  child: Text(
+                  child: Text( // Cambio aquí
                     _errorMessage!,
                     style: const TextStyle(color: Colors.red),
                   ),
@@ -98,7 +98,7 @@ class LoginScreenState extends State<LoginScreen> { // <- Cambio aquí
               const SizedBox(height: 20),
               TextButton(
                 onPressed: () {
-                  Provider.of<AppNavegationProvider>(context, listen: false)
+                  Provider.of<AppNavigationProvider>(context, listen: false)
                       .changeRoute('/registerUser');
                 },
                 child: const Text(
@@ -146,13 +146,11 @@ class LoginScreenState extends State<LoginScreen> { // <- Cambio aquí
       _errorMessage = null;
     });
 
-    // Aquí puedes agregar tu lógica real de autenticación
+    await Provider.of<AppNavigationProvider>(context, listen: false)
+        .signIn(_emailController.text, _passwordController.text);
 
     setState(() {
       _processing = false;
     });
-
-    if (!mounted) return;
-    Navigator.pushReplacementNamed(context, '/home');
   }
 }

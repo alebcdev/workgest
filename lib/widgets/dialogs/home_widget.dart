@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../providers/app_navegation_provider.dart';
+import '../../providers/app_navigation_provider.dart';
 
 class HomeWidget extends StatelessWidget {
   final String title;
@@ -31,7 +31,7 @@ class HomeWidget extends StatelessWidget {
         const SizedBox(height: 10),
         InkWell(
           onTap: () {
-            AppNavegationProvider().changeRoute(route);
+            AppNavigationProvider().changeRoute(route);
           },
           child: Icon(
             icon,
