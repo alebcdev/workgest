@@ -27,10 +27,10 @@ class UserItem {
   /// Crea un UserItem a partir de un Map (por ejemplo, en listados)
   factory UserItem.fromJson(Map<String, dynamic> json) {
     return UserItem(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      email: json['email'] as String,
-      type: json['type'] as String,
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      type: json['type'] ?? '',
     );
   }
 
