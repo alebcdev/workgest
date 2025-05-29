@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:workgest/services/firebase_service.dart';
 import '../managers/user_manager.dart';
 import '../model/user_item.dart';
 import '../providers/app_navigation_provider.dart';
@@ -12,13 +13,13 @@ class UserListScreen extends StatefulWidget {
 }
 
 class _UserListScreenState extends State<UserListScreen> {
-  final UserManager _userManager = UserManager();
-  late Future<List<UserItem>> _usersFuture;
+  final FirebaseService _firebaseService = FirebaseService();
+  late Future<List<Map<String, dynamic>>> _usersFuture;
 
   @override
   void initState() {
     super.initState();
-    _usersFuture = _userManager.getAllUsers();
+    _usersFuture = _firebaseService.getAllUsers();
   }
 
   @override
@@ -27,7 +28,7 @@ class _UserListScreenState extends State<UserListScreen> {
       appBar: AppBar(
         title: const Text('User List'),
       ),
-      body: FutureBuilder<List<UserItem>>(
+      body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _usersFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -41,7 +42,7 @@ class _UserListScreenState extends State<UserListScreen> {
             return ListView.builder(
               itemCount: users.length,
               itemBuilder: (context, index) {
-                final user = users[index];
+                final user = UserItem.fromJson(users[index]);
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                   child: Card(
@@ -77,10 +78,12 @@ class _UserListScreenState extends State<UserListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Provider.of<AppNavigationProvider>(context, listen: false).changeRoute('/register_user');
+          Provider.of<AppNavigationProvider>(context, listen: false).changeRoute('/userRegistration');
         },
         child: const Icon(Icons.add),
       ),
     );
   }
 }
+
+

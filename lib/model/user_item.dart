@@ -18,8 +18,8 @@ class UserItem {
     final data = snap.data() as Map<String, dynamic>;
     return UserItem(
       id: snap.id,
-      name: data['name'] ?? '',
-      email: data['correo'] ?? '',
+      name: data['nombre'] ?? '',
+      email: data['email'] ?? '',
       type: data['rol'] ?? data['type'] ?? '',
     );
   }
@@ -28,15 +28,15 @@ class UserItem {
   factory UserItem.fromJson(Map<String, dynamic> json) {
     return UserItem(
       id: json['id'] ?? '',
-      name: json['name'] ?? '',
+      name: json['nombre'] ?? '',
       email: json['email'] ?? '',
-      type: json['type'] ?? '',
+      type: json['rol'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'name': name,
+      'nombre': name,
       'correo': email,
       'rol': type,
     };
